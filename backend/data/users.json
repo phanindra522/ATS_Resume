@@ -1,0 +1,26 @@
+[
+  {
+    "email": "phanindra522@gmail.com",
+    "full_name": "Phanindra Yarlagadda",
+    "hashed_password": "$2b$12$Z.WOYPO3JHUX1NM.zgJs..qIAK9JZT5dWBUOVdYkAho7CJpqWJN4W",
+    "_id": "de803ad0-d6db-4442-be17-470d2b8fd173",
+    "created_at": "2025-09-03 11:49:51.272427",
+    "updated_at": "2025-09-03 11:49:51.272433"
+  },
+  {
+    "email": "sreekanth@gmail.com",
+    "full_name": "Sreekanth",
+    "hashed_password": "$2b$12$7p86oLoDf05pl0jmob8hf.Sky7QG6whG3EFTS9uaRz.6ACDv8WuXO",
+    "_id": "7455dc33-b10c-4175-b89d-82af82908a57",
+    "created_at": "2025-09-03 11:53:46.552508",
+    "updated_at": "2025-09-03 11:53:46.552537"
+  },
+  {
+    "email": "sreekanth1@gmail.com",
+    "full_name": "Sreekanth1",
+    "hashed_password": "$2b$12$CSb2qTjJme8vUFuRBe5Axu3JuFe9/dpfEYL3D4ZSNAir9rwgWhjSG",
+    "created_at": "2025-09-03 12:01:31.802767",
+    "updated_at": "2025-09-03 12:01:31.802771",
+    "_id": "c10e3637-f997-4fc1-bffb-44372d9d1ec7"
+  }
+]
