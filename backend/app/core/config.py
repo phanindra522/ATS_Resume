@@ -10,8 +10,8 @@ class Settings(BaseSettings):
     # ChromaDB
     CHROMA_PERSIST_DIRECTORY: str = "./chroma_db"
     
-    # Security
-    SECRET_KEY: str = "your-secret-key-change-in-production"
+    # Security - Now loaded from .env
+    SECRET_KEY: str = ""  # This will be overridden by .env
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
@@ -28,5 +28,7 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        # This ensures .env values override defaults
+        env_file_encoding = 'utf-8'
 
 settings = Settings()
