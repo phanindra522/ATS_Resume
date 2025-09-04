@@ -19,6 +19,8 @@ interface Resume {
   title: string
   filename: string
   created_at: string
+  user_name?: string
+  user_email?: string
 }
 
 interface Job {
@@ -26,6 +28,8 @@ interface Job {
   title: string
   company: string
   created_at: string
+  user_name?: string
+  user_email?: string
 }
 
 const Dashboard = () => {
@@ -78,7 +82,7 @@ const Dashboard = () => {
             Welcome back, {user?.full_name}!
           </h1>
           <p className="text-xl text-text-secondary">
-            Here's what's happening with your ATS Scoring system
+            Here's what's happening with the Global ATS Pool - all recruiters can see all resumes and jobs
           </p>
         </div>
 
@@ -88,10 +92,13 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-text-secondary mb-1">
-                  Total Resumes
+                  Total Resumes (Global Pool)
                 </p>
                 <p className="text-3xl font-bold text-text-primary">
                   {resumes.length}
+                </p>
+                <p className="text-xs text-text-muted mt-1">
+                  From all recruiters
                 </p>
               </div>
               <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
@@ -104,10 +111,13 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-text-secondary mb-1">
-                  Active Jobs
+                  Active Jobs (Global Pool)
                 </p>
                 <p className="text-3xl font-bold text-text-primary">
                   {jobs.length}
+                </p>
+                <p className="text-xs text-text-muted mt-1">
+                  From all recruiters
                 </p>
               </div>
               <div className="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center">
@@ -185,7 +195,7 @@ const Dashboard = () => {
           <div className="card p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-text-primary">
-                Recent Resumes
+                Recent Resumes (Global Pool)
               </h3>
               <Link
                 to="/upload"
@@ -213,6 +223,11 @@ const Dashboard = () => {
                       <div>
                         <p className="font-medium text-text-primary">{resume.title}</p>
                         <p className="text-sm text-text-secondary">{resume.filename}</p>
+                        {resume.user_name && (
+                          <p className="text-xs text-text-muted">
+                            By: {resume.user_name}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center space-x-2 text-sm text-text-secondary">
@@ -229,7 +244,7 @@ const Dashboard = () => {
           <div className="card p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-text-primary">
-                Recent Jobs
+                Recent Jobs (Global Pool)
               </h3>
               <Link
                 to="/job-description"
@@ -257,6 +272,11 @@ const Dashboard = () => {
                       <div>
                         <p className="font-medium text-text-primary">{job.title}</p>
                         <p className="text-sm text-text-secondary">{job.company}</p>
+                        {job.user_name && (
+                          <p className="text-xs text-text-muted">
+                            By: {job.user_name}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center space-x-2 text-sm text-text-secondary">

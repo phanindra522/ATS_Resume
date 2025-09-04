@@ -47,23 +47,58 @@ const JobDescription = () => {
 
     setUploadedFile(file)
     
-    // If it's a text file, read the content
-    if (file.type === 'text/plain') {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const text = e.target?.result as string
-        setExtractedText(text)
-        // Auto-fill description if it's empty
-        if (!formData.description) {
-          setFormData(prev => ({ ...prev, description: text }))
+    // Show loading toast
+    const loadingToast = toast.loading('Extracting job information from file...')
+    
+    try {
+      // Call the extraction endpoint
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const response = await api.post('/jobs/extract', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      
+      const extractedData = response.data
+      setExtractedText(extractedData.extracted_text || '')
+      
+      // Auto-fill form fields with extracted data
+      setFormData(prev => ({
+        ...prev,
+        title: extractedData.title || prev.title,
+        company: extractedData.company || prev.company,
+        description: extractedData.description || prev.description,
+        requirements: extractedData.requirements ? extractedData.requirements.join('\n') : prev.requirements,
+        skills: extractedData.skills ? extractedData.skills.join(', ') : prev.skills,
+        experience_level: extractedData.experience_level || prev.experience_level,
+        location: extractedData.location || prev.location,
+        salary_range: extractedData.salary_range || prev.salary_range,
+      }))
+      
+      toast.dismiss(loadingToast)
+      toast.success('Job information extracted and form filled automatically!')
+      
+    } catch (error: any) {
+      toast.dismiss(loadingToast)
+      toast.error(error.response?.data?.detail || 'Failed to extract job information')
+      
+      // Fallback: If it's a text file, read the content locally
+      if (file.type === 'text/plain') {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const text = e.target?.result as string
+          setExtractedText(text)
+          // Auto-fill description if it's empty
+          if (!formData.description) {
+            setFormData(prev => ({ ...prev, description: text }))
+          }
         }
+        reader.readAsText(file)
       }
-      reader.readAsText(file)
-    } else {
-      // For PDF/DOCX, we'll extract text on the backend
-      toast.success('File uploaded! Text will be extracted when you save the job.')
     }
-  }, [formData.description])
+  }, [formData])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -83,7 +118,7 @@ const JobDescription = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.title || !formData.company || !formData.description) {
+    if (!formData.title || !formData.description) {
       toast.error('Please fill in the required fields')
       return
     }
@@ -150,7 +185,7 @@ const JobDescription = () => {
             📄 Upload Job Description File (Optional)
           </h3>
           <p className="text-sm text-text-secondary mb-4">
-            Upload a PDF, TXT, or DOCX file to automatically extract job details
+            Upload a PDF, TXT, or DOCX file to automatically extract and fill job details in the form below
           </p>
           
           {!uploadedFile ? (
@@ -231,7 +266,7 @@ const JobDescription = () => {
 
               <div>
                 <label htmlFor="company" className="block text-sm font-medium text-text-primary mb-2">
-                  Company *
+                  Company
                 </label>
                 <div className="relative">
                   <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted" size={20} />
@@ -239,7 +274,6 @@ const JobDescription = () => {
                     id="company"
                     name="company"
                     type="text"
-                    required
                     value={formData.company}
                     onChange={handleChange}
                     className="input-field pl-10"
@@ -407,11 +441,11 @@ const JobDescription = () => {
             </div>
             <div className="flex items-start space-x-2">
               <FileText className="text-primary-500 mt-0.5" size={16} />
-              <span>Upload PDF/DOCX files to automatically extract content</span>
+              <span>Upload PDF/DOCX files to automatically extract and fill form fields</span>
             </div>
             <div className="flex items-start space-x-2">
               <FileText className="text-primary-500 mt-0.5" size={16} />
-              <span>Review extracted text and refine as needed</span>
+              <span>Review extracted information and refine as needed</span>
             </div>
           </div>
         </div>

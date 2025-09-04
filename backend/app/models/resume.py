@@ -39,3 +39,8 @@ class ResumeWithScore(ResumeResponse):
     match_percentage: float
     skills_match: List[str]
     missing_skills: List[str]
+
+class ResumeWithUserInfo(ResumeResponse):
+    """Resume response with user information for global pool display"""
+    user_name: Optional[str] = None
+    user_email: Optional[str] = None

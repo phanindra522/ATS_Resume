@@ -5,7 +5,7 @@ import PyPDF2  # Alternative PDF processing
 from docx import Document
 import numpy as np
 import hashlib
-from app.models.resume import ResumeCreate, ResumeResponse, ResumeUpdate
+from app.models.resume import ResumeCreate, ResumeResponse, ResumeUpdate, ResumeWithUserInfo
 from app.database import get_database, get_chroma_collection
 from app.routers.auth import get_current_user
 from app.core.config import settings
@@ -172,17 +172,32 @@ async def upload_resume(
             detail=f"Failed to upload resume: {str(e)}"
         )
 
-@router.get("/", response_model=List[ResumeResponse])
+@router.get("/", response_model=List[ResumeWithUserInfo])
 async def get_resumes(current_user = Depends(get_current_user)):
-    """Get all resumes for the current user"""
+    """Get all resumes from the global pool (all recruiters can see all resumes)"""
     try:
         db = get_database()
         
-        # Fix: Properly await the find operation and call to_list
-        resumes_cursor = await db.resumes.find({"user_id": current_user["_id"]})
-        resumes = await resumes_cursor.to_list(length=100)
+        # Global pool: Get all resumes from all users
+        resumes_cursor = await db.resumes.find({})
+        resumes = await resumes_cursor.to_list(length=1000)  # Increased limit for global pool
         
-        return [ResumeResponse(**resume) for resume in resumes]
+        # Get user information for each resume
+        resumes_with_user_info = []
+        for resume in resumes:
+            # Get user information
+            user = await db.users.find_one({"_id": resume["user_id"]})
+            user_name = user["full_name"] if user else "Unknown User"
+            user_email = user["email"] if user else "unknown@example.com"
+            
+            # Create resume with user info
+            resume_data = resume.copy()
+            resume_data["user_name"] = user_name
+            resume_data["user_email"] = user_email
+            
+            resumes_with_user_info.append(ResumeWithUserInfo(**resume_data))
+        
+        return resumes_with_user_info
         
     except Exception as e:
         print(f"Error getting resumes: {str(e)}")
@@ -193,11 +208,10 @@ async def get_resumes(current_user = Depends(get_current_user)):
 
 @router.get("/{resume_id}", response_model=ResumeResponse)
 async def get_resume(resume_id: str, current_user = Depends(get_current_user)):
-    """Get a specific resume by ID"""
+    """Get a specific resume by ID from the global pool"""
     db = get_database()
     resume = await db.resumes.find_one({
-        "_id": resume_id,
-        "user_id": current_user["_id"]
+        "_id": resume_id
     })
     
     if not resume:
