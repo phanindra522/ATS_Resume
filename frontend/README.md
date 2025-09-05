@@ -7,6 +7,7 @@ React frontend for the ATS Scoring Assistant built with Vite, TailwindCSS, and T
 ### Prerequisites
 - Node.js 18+
 - npm or yarn
+- Vite 7.1.4+ (latest stable)
 
 ### Installation
 
@@ -27,6 +28,9 @@ npm run dev
 
 4. **Open in browser**
 Navigate to http://localhost:5173
+
+**Development server will be available at:** http://localhost:5173
+**Network access:** http://192.168.0.102:5173 (for mobile testing)
 
 ## 🏗️ Build for Production
 

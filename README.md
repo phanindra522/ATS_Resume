@@ -28,9 +28,9 @@ Built following Swiss design principles:
 
 ### Prerequisites
 - Node.js 18+
-- Python 3.9+
-- MongoDB
-- ChromaDB
+- Python 3.12+ (recommended)
+- MongoDB (optional - uses in-memory database by default)
+- ChromaDB (installed automatically)
 
 ### Frontend Setup
 ```bash
@@ -38,13 +38,19 @@ cd frontend
 npm install
 npm run dev
 ```
+**Frontend will be available at:** http://localhost:5173
 
 ### Backend Setup
 ```bash
 cd backend
+python -m venv venv
+venv\Scripts\activate  # Windows
+# source venv/bin/activate  # Linux/Mac
 pip install -r requirements.txt
-uvicorn main:app --reload
+python main.py
 ```
+**Backend will be available at:** http://localhost:8000
+**API Documentation:** http://localhost:8000/docs
 
 ## 📁 Project Structure
 
@@ -65,6 +71,25 @@ ATS_Resume/
 - **Results Dashboard**: Clean, actionable insights
 - **Responsive Design**: Works on all devices
 
+## ✅ Current Status
+
+**Application is fully operational and running!**
+
+- ✅ **Backend**: FastAPI server running on Python 3.12.4
+- ✅ **Frontend**: React + Vite development server running
+- ✅ **Dependencies**: All packages updated to latest secure versions
+- ✅ **Database**: Persistent in-memory database with ChromaDB
+- ✅ **Security**: All vulnerabilities fixed, JWT authentication ready
+- ✅ **Git**: Repository cleaned and properly configured
+
 ## 🔧 Configuration
 
 See individual README files in `frontend/` and `backend/` directories for detailed setup instructions.
+
+## 📋 Recent Updates
+
+- **Python 3.12**: Upgraded from Python 3.13 for better compatibility
+- **Dependencies**: Updated all packages to latest secure versions
+- **Security**: Fixed npm audit vulnerabilities
+- **Git**: Cleaned up repository, removed unnecessary tracked files
+- **Database**: Using persistent in-memory database for development

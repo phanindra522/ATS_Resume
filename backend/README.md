@@ -5,8 +5,8 @@ FastAPI backend for the ATS Scoring Assistant with MongoDB and ChromaDB integrat
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.9+
-- MongoDB running locally or accessible
+- Python 3.12+ (recommended - tested with 3.12.4)
+- MongoDB (optional - uses persistent in-memory database by default)
 - ChromaDB (will be installed automatically)
 
 ### Installation
@@ -19,7 +19,10 @@ cd backend
 2. **Create virtual environment**
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
 ```
 
 3. **Install dependencies**
@@ -35,8 +38,13 @@ cp env.example .env
 
 5. **Start the server**
 ```bash
+python main.py
+# OR
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+**Server will be available at:** http://localhost:8000
+**API Documentation:** http://localhost:8000/docs
 
 ## 🔧 Configuration
 
