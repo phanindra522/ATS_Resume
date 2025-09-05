@@ -127,8 +127,8 @@ const JobDescription = () => {
     try {
       let jobData = {
         ...formData,
-        requirements: formData.requirements.split('\n').filter(req => req.trim()),
-        skills: formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill)
+        requirements: formData.requirements ? formData.requirements.split('\n').filter(req => req.trim()) : [],
+        skills: formData.skills ? formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill) : []
       }
 
       // If there's an uploaded file, send it along with the job data
@@ -136,12 +136,13 @@ const JobDescription = () => {
         const formDataToSend = new FormData()
         formDataToSend.append('file', uploadedFile)
         
-        // Add job data as JSON string
+        // Add job data as FormData fields
         Object.keys(jobData).forEach(key => {
-          if (jobData[key as keyof typeof jobData]) {
-            formDataToSend.append(key, Array.isArray(jobData[key as keyof typeof jobData]) 
-              ? JSON.stringify(jobData[key as keyof typeof jobData])
-              : String(jobData[key as keyof typeof jobData])
+          const value = jobData[key as keyof typeof jobData]
+          if (value !== null && value !== undefined) {
+            formDataToSend.append(key, Array.isArray(value) 
+              ? JSON.stringify(value)
+              : String(value)
             )
           }
         })
@@ -160,7 +161,12 @@ const JobDescription = () => {
       toast.success('Job description saved successfully!')
       navigate('/dashboard')
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || 'Failed to save job description')
+      console.error('Save error:', error.response?.data)
+      const errorMessage = error.response?.data?.detail || 
+                          (error.response?.data?.errors ? 
+                            error.response.data.errors.map((e: any) => e.msg).join(', ') : 
+                            'Failed to save job description')
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }

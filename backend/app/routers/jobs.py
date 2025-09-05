@@ -134,8 +134,11 @@ def parse_job_text(text: str) -> dict:
         if any(keyword in line_lower for keyword in ['position:', 'job title:', 'title:', 'role:']):
             result["title"] = line.split(':', 1)[1].strip() if ':' in line else line.strip()
             break
+        elif 'systems administrator' in line_lower:
+            result["title"] = "Systems Administrator"
+            break
         elif (i < 3 and len(line.strip()) > 5 and len(line.strip()) < 100 and 
-              not any(skip_word in line_lower for skip_word in ['summary:', 'description:', 'overview:', 'about:', 'company:', 'employer:', 'organization:']) and
+              not any(skip_word in line_lower for skip_word in ['summary:', 'description:', 'overview:', 'about:', 'company:', 'employer:', 'organization:', 'we are', 'currently seeking']) and
               not line.strip().startswith(('+', '-', '•', '*', '1.', '2.', '3.')) and
               not any(keyword in line_lower for keyword in ['years', 'experience', 'building', 'apps', 'javascript', 'typescript'])):
             result["title"] = line.strip()
@@ -187,14 +190,36 @@ def parse_job_text(text: str) -> dict:
         'django', 'flask', 'spring', 'sql', 'mongodb', 'postgresql', 'mysql',
         'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'git', 'jenkins',
         'html', 'css', 'typescript', 'php', 'ruby', 'go', 'rust', 'c++', 'c#',
-        'machine learning', 'ai', 'data science', 'analytics', 'tableau', 'power bi'
+        'machine learning', 'ai', 'data science', 'analytics', 'tableau', 'power bi',
+        'technical troubleshooting', 'hardware support', 'software support', 'customer service',
+        'problem-solving', 'communication', 'linux', 'windows', 'networking', 'it support',
+        'systems administration', 'troubleshooting', 'hardware', 'software', 'documentation'
     ]
     
     found_skills = []
+    in_skills_section = False
+    
+    for line in lines:
+        line_lower = line.lower().strip()
+        if 'skills:' in line_lower:
+            in_skills_section = True
+            continue
+        
+        if in_skills_section:
+            if line.strip() and line.strip().startswith(('•', '-', '*')):
+                clean_line = line.strip().lstrip('•-* ').strip()
+                if clean_line and len(clean_line) > 3:
+                    found_skills.append(clean_line.title())
+            elif line.strip() == '':
+                continue
+            else:
+                break
+    
+    # Also look for skills throughout the text
     for line in lines:
         line_lower = line.lower()
         for skill in skill_keywords:
-            if skill in line_lower and skill not in found_skills:
+            if skill in line_lower and skill not in [s.lower() for s in found_skills]:
                 found_skills.append(skill.title())
     
     result["skills"] = found_skills[:10]  # Limit to 10 skills
@@ -211,7 +236,7 @@ def parse_job_text(text: str) -> dict:
         
         if in_requirements_section:
             if line.strip() and (line.strip().startswith(('•', '-', '*', '1.', '2.', '3.')) or 
-                               any(keyword in line_lower for keyword in ['years', 'experience', 'degree', 'bachelor', 'master'])):
+                               any(keyword in line_lower for keyword in ['years', 'experience', 'degree', 'bachelor', 'master', 'demonstrated', 'expertise', 'specialization', 'understanding'])):
                 clean_line = line.strip().lstrip('•-*123456789. ').strip()
                 if clean_line and len(clean_line) > 10:
                     requirements.append(clean_line)
@@ -243,25 +268,37 @@ async def create_job(
     job: JobCreate,
     current_user = Depends(get_current_user)
 ):
-    db = get_database()
-    
-    job_data = job.dict()
-    job_data["user_id"] = current_user["_id"]
-    job_data["created_at"] = datetime.utcnow()
-    job_data["updated_at"] = datetime.utcnow()
-    
-    result = await db.jobs.insert_one(job_data)
-    
-    # Fix: Use dictionary access for inserted_id
-    job_data["_id"] = result["inserted_id"]
-    
-    return JobResponse(**job_data)
+    try:
+        db = get_database()
+        
+        job_data = job.dict()
+        job_data["user_id"] = current_user["_id"]
+        job_data["created_at"] = datetime.utcnow()
+        job_data["updated_at"] = datetime.utcnow()
+        
+        print(f"Creating job with data: {job_data}")
+        
+        result = await db.jobs.insert_one(job_data)
+        
+        # Fix: Use dictionary access for inserted_id
+        job_data["_id"] = result["inserted_id"]
+        
+        print(f"Job created successfully with ID: {result['inserted_id']}")
+        
+        return JobResponse(**job_data)
+        
+    except Exception as e:
+        print(f"Error creating job: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create job: {str(e)}"
+        )
 
 @router.post("/upload", response_model=JobResponse)
 async def upload_job_file(
     file: UploadFile = File(...),
     title: str = Form(...),
-    company: str = Form(...),
+    company: Optional[str] = Form(""),
     description: Optional[str] = Form(""),
     requirements: Optional[str] = Form(""),
     skills: Optional[str] = Form(""),
@@ -347,12 +384,16 @@ async def upload_job_file(
             "updated_at": datetime.utcnow()
         }
         
+        print(f"Uploading job with data: {job_data}")
+        
         # Save to database
         db = get_database()
         result = await db.jobs.insert_one(job_data)
         
         # Fix: Use dictionary access for inserted_id
         job_data["_id"] = result["inserted_id"]
+        
+        print(f"Job uploaded successfully with ID: {result['inserted_id']}")
         
         return JobResponse(**job_data)
         

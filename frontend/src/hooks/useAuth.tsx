@@ -45,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         localStorage.removeItem('token')
         delete api.defaults.headers.common['Authorization']
+        setUser(null) // Clear user state when token is invalid
       }
     }
     setLoading(false)
