@@ -4,7 +4,7 @@ from datetime import datetime
 
 class JobBase(BaseModel):
     title: str
-    company: str
+    company: Optional[str] = None
     description: str
     requirements: List[str] = []
     skills: List[str] = []
@@ -39,3 +39,16 @@ class JobFileUpload(BaseModel):
     message: str
     extracted_text: Optional[str] = None
     job_id: str
+    title: Optional[str] = None
+    company: Optional[str] = None
+    description: Optional[str] = None
+    requirements: Optional[List[str]] = None
+    skills: Optional[List[str]] = None
+    experience_level: Optional[str] = None
+    location: Optional[str] = None
+    salary_range: Optional[str] = None
+
+class JobWithUserInfo(JobResponse):
+    """Job response with user information for global pool display"""
+    user_name: Optional[str] = None
+    user_email: Optional[str] = None
