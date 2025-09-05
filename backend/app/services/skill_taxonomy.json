@@ -1,0 +1,117 @@
+{
+  "programming_languages": {
+    "javascript": ["javascript", "js", "ecmascript", "typescript", "ts"],
+    "python": ["python", "py", "python3"],
+    "java": ["java", "jdk", "jvm"],
+    "csharp": ["c#", "csharp", ".net", "dotnet"],
+    "cpp": ["c++", "cpp", "c plus plus"],
+    "go": ["go", "golang"],
+    "rust": ["rust"],
+    "php": ["php"],
+    "ruby": ["ruby", "rails"],
+    "swift": ["swift"],
+    "kotlin": ["kotlin"],
+    "scala": ["scala"],
+    "r": ["r", "r language"],
+    "matlab": ["matlab"],
+    "perl": ["perl"]
+  },
+  "web_frameworks": {
+    "react": ["react", "reactjs", "react.js", "jsx"],
+    "angular": ["angular", "angularjs", "angular.js"],
+    "vue": ["vue", "vuejs", "vue.js", "nuxt"],
+    "svelte": ["svelte", "sveltekit"],
+    "nextjs": ["next.js", "nextjs", "next"],
+    "nuxt": ["nuxt", "nuxtjs", "nuxt.js"],
+    "express": ["express", "expressjs", "express.js"],
+    "django": ["django", "djangorest"],
+    "flask": ["flask", "fastapi"],
+    "spring": ["spring", "springboot", "spring boot"],
+    "laravel": ["laravel"],
+    "rails": ["rails", "ruby on rails"],
+    "aspnet": ["asp.net", "aspnet", "mvc"],
+    "fastapi": ["fastapi", "fast api"]
+  },
+  "runtime_environments": {
+    "nodejs": ["node.js", "nodejs", "node", "nodejs"],
+    "deno": ["deno"],
+    "bun": ["bun"]
+  },
+  "databases": {
+    "mysql": ["mysql", "mariadb"],
+    "postgresql": ["postgresql", "postgres", "pg"],
+    "mongodb": ["mongodb", "mongo"],
+    "redis": ["redis"],
+    "elasticsearch": ["elasticsearch", "elastic", "elk"],
+    "cassandra": ["cassandra"],
+    "dynamodb": ["dynamodb", "dynamo"],
+    "sqlite": ["sqlite", "sqlite3"],
+    "oracle": ["oracle", "oracle db"],
+    "sqlserver": ["sql server", "mssql", "sqlserver"]
+  },
+  "cloud_platforms": {
+    "aws": ["aws", "amazon web services", "amazon aws"],
+    "azure": ["azure", "microsoft azure"],
+    "gcp": ["gcp", "google cloud", "google cloud platform"],
+    "heroku": ["heroku"],
+    "vercel": ["vercel"],
+    "netlify": ["netlify"],
+    "digitalocean": ["digitalocean", "digital ocean"]
+  },
+  "devops_tools": {
+    "docker": ["docker", "dockerfile", "docker compose"],
+    "kubernetes": ["kubernetes", "k8s", "kube"],
+    "jenkins": ["jenkins"],
+    "gitlab": ["gitlab", "gitlab ci"],
+    "github": ["github", "github actions"],
+    "terraform": ["terraform"],
+    "ansible": ["ansible"],
+    "chef": ["chef"],
+    "puppet": ["puppet"],
+    "vagrant": ["vagrant"]
+  },
+  "version_control": {
+    "git": ["git", "github", "gitlab", "bitbucket"],
+    "svn": ["svn", "subversion"],
+    "mercurial": ["mercurial", "hg"]
+  },
+  "testing_frameworks": {
+    "jest": ["jest"],
+    "mocha": ["mocha"],
+    "chai": ["chai"],
+    "cypress": ["cypress"],
+    "selenium": ["selenium"],
+    "pytest": ["pytest", "py.test"],
+    "junit": ["junit", "junit5"],
+    "testng": ["testng"],
+    "rspec": ["rspec"],
+    "phpunit": ["phpunit"]
+  },
+  "methodologies": {
+    "agile": ["agile", "scrum", "kanban", "sprint"],
+    "devops": ["devops", "dev ops", "ci/cd", "cicd", "continuous integration", "continuous deployment"],
+    "tdd": ["tdd", "test driven development", "test-driven development"],
+    "bdd": ["bdd", "behavior driven development", "behavior-driven development"],
+    "microservices": ["microservices", "micro services", "microservice architecture"],
+    "rest": ["rest", "restful", "rest api"],
+    "graphql": ["graphql", "graph ql"],
+    "soa": ["soa", "service oriented architecture"]
+  },
+  "soft_skills": {
+    "leadership": ["leadership", "lead", "leading", "team lead", "tech lead"],
+    "communication": ["communication", "communicating", "presentation", "presenting"],
+    "problem_solving": ["problem solving", "problem-solving", "analytical", "critical thinking"],
+    "teamwork": ["teamwork", "team work", "collaboration", "collaborating"],
+    "mentoring": ["mentoring", "mentor", "coaching", "coach"],
+    "project_management": ["project management", "pm", "project manager", "agile project management"]
+  },
+  "specializations": {
+    "frontend": ["frontend", "front-end", "front end", "ui", "user interface", "ux", "user experience"],
+    "backend": ["backend", "back-end", "back end", "server-side", "server side"],
+    "fullstack": ["fullstack", "full-stack", "full stack", "fullstack developer"],
+    "mobile": ["mobile", "ios", "android", "react native", "flutter", "xamarin"],
+    "data_science": ["data science", "machine learning", "ml", "ai", "artificial intelligence", "deep learning"],
+    "cybersecurity": ["cybersecurity", "cyber security", "security", "penetration testing", "pen testing"],
+    "blockchain": ["blockchain", "cryptocurrency", "crypto", "web3", "defi"]
+  }
+}

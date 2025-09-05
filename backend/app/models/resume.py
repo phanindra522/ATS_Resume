@@ -15,7 +15,7 @@ class ResumeResponse(ResumeBase):
     filename: str
     file_path: str
     file_size: int
-    content: str
+    text_content: str  # Changed from 'content' to 'text_content' to match actual data
     file_hash: Optional[str] = None  # Add file hash
     text_hash: Optional[str] = None  # Add text hash
     skills: List[str] = []

@@ -13,9 +13,51 @@ import uuid
 
 router = APIRouter()
 
-# TODO: Replace with OpenAI embeddings when OpenAI integration is complete
-def generate_placeholder_embedding(text: str, dimension: int = 1536) -> np.ndarray:
-    """Generate a placeholder embedding for now - will be replaced with OpenAI"""
+def generate_embedding(text: str) -> np.ndarray:
+    """Generate embedding using configured LLM provider"""
+    try:
+        if settings.LLM_PROVIDER.lower() == "openai":
+            return generate_openai_embedding(text)
+        elif settings.LLM_PROVIDER.lower() == "gemini":
+            return generate_gemini_embedding(text)
+        else:
+            # Fallback to placeholder for other providers
+            return generate_placeholder_embedding(text, settings.EMBEDDING_DIMENSION)
+    except Exception as e:
+        print(f"Embedding generation failed: {e}, using placeholder")
+        return generate_placeholder_embedding(text, settings.EMBEDDING_DIMENSION)
+
+def generate_openai_embedding(text: str) -> np.ndarray:
+    """Generate embedding using OpenAI"""
+    try:
+        import openai
+        client = openai.OpenAI(api_key=settings.LLM_PROVIDER_API_KEY)  # Use sync client
+        response = client.embeddings.create(
+            model=settings.LLM_EMBEDDING_MODEL,
+            input=text
+        )
+        return np.array(response.data[0].embedding)
+    except Exception as e:
+        raise Exception(f"OpenAI embedding error: {str(e)}")
+
+def generate_gemini_embedding(text: str) -> np.ndarray:
+    """Generate embedding using Google Gemini"""
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=settings.LLM_PROVIDER_API_KEY)
+        result = genai.embed_content(
+            model=settings.LLM_EMBEDDING_MODEL,
+            content=text,
+            task_type="retrieval_document"
+        )
+        return np.array(result['embedding'])
+    except Exception as e:
+        raise Exception(f"Gemini embedding error: {str(e)}")
+
+def generate_placeholder_embedding(text: str, dimension: int = None) -> np.ndarray:
+    """Generate a placeholder embedding for fallback"""
+    if dimension is None:
+        dimension = settings.EMBEDDING_DIMENSION
     return np.random.rand(dimension)
 
 def calculate_file_hash(content: bytes) -> str:
@@ -119,8 +161,8 @@ async def upload_resume(
                     detail="A resume with identical content has already been uploaded. Duplicate content is not allowed."
                 )
         
-        # Generate placeholder embeddings (will be replaced with OpenAI)
-        embeddings = generate_placeholder_embedding(text_content, settings.EMBEDDING_DIMENSION)
+        # Generate embeddings using configured LLM provider
+        embeddings = generate_embedding(text_content)
         
         # Store embeddings in ChromaDB
         chroma_collection = get_chroma_collection()
@@ -142,7 +184,7 @@ async def upload_resume(
             "filename": filename,
             "file_path": file_path,
             "file_size": file.size,
-            "content": text_content,
+            "text_content": text_content,  # Fixed: use text_content instead of content
             "file_hash": file_hash,  # Store file hash
             "text_hash": text_hash,  # Store text hash
             "skills": [],  # Will be extracted later
@@ -306,3 +348,61 @@ async def check_duplicate_resume(
         "is_duplicate": False,
         "message": "No duplicate found"
     }
+
+@router.delete("/{resume_id}")
+async def delete_resume(resume_id: str, current_user = Depends(get_current_user)):
+    """Delete a resume by ID"""
+    try:
+        db = get_database()
+        
+        # Check if resume exists and belongs to the user
+        resume = await db.resumes.find_one({
+            "_id": resume_id,
+            "user_id": current_user["_id"]
+        })
+        
+        if not resume:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Resume not found or you don't have permission to delete it"
+            )
+        
+        # Delete the resume
+        result = await db.resumes.delete_one({"_id": resume_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Resume not found"
+            )
+        
+        # Also remove from ChromaDB if it exists
+        try:
+            chroma_collection = get_chroma_collection()
+            if chroma_collection:
+                # Remove document from ChromaDB
+                chroma_collection.delete(ids=[resume_id])
+        except Exception as e:
+            print(f"Warning: Could not remove resume from ChromaDB: {e}")
+        
+        # Delete the physical file if it exists
+        try:
+            if 'file_path' in resume and resume['file_path']:
+                file_path = os.path.join(settings.UPLOAD_DIR, resume['file_path'])
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+        except Exception as e:
+            print(f"Warning: Could not delete physical file: {e}")
+        
+        return {
+            "message": "Resume deleted successfully",
+            "deleted_resume_id": resume_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete resume: {str(e)}"
+        )

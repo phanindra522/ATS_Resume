@@ -12,7 +12,8 @@ import {
   MapPin,
   DollarSign,
   Users,
-  Target
+  Target,
+  Trash2
 } from 'lucide-react'
 import { api } from '../lib/api'
 import toast from 'react-hot-toast'
@@ -51,12 +52,36 @@ const ScoringResults = () => {
   const [scoringResult, setScoringResult] = useState<ScoringResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedResume, setSelectedResume] = useState<ScoredResume | null>(null)
+  const [deletingResume, setDeletingResume] = useState<string | null>(null)
 
   useEffect(() => {
     if (jobId) {
       fetchScoringResults(jobId)
+    } else {
+      // If no jobId provided, try to get the first available job
+      fetchFirstJobAndScore()
     }
   }, [jobId])
+
+  const fetchFirstJobAndScore = async () => {
+    try {
+      setLoading(true)
+      // Get all jobs and use the first one
+      const response = await api.get('/jobs')
+      const jobs = response.data
+      
+      if (jobs && jobs.length > 0) {
+        const firstJob = jobs[0]
+        await fetchScoringResults(firstJob._id)
+      } else {
+        toast.error('No jobs found. Please create a job description first.')
+        setLoading(false)
+      }
+    } catch (error: any) {
+      toast.error('Failed to fetch jobs: ' + (error.response?.data?.detail || error.message))
+      setLoading(false)
+    }
+  }
 
   const fetchScoringResults = async (id: string) => {
     try {
@@ -79,6 +104,39 @@ const ScoringResults = () => {
     if (score >= 0.8) return 'bg-success-100 text-success-700'
     if (score >= 0.6) return 'bg-warning-100 text-warning-700'
     return 'bg-error-100 text-error-700'
+  }
+
+  const handleDeleteResume = async (resumeId: string, resumeTitle: string) => {
+    if (!confirm(`Are you sure you want to delete "${resumeTitle}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      setDeletingResume(resumeId)
+      await api.delete(`/resumes/${resumeId}`)
+      
+      // Remove from local state
+      if (scoringResult) {
+        const updatedResumes = scoringResult.scored_resumes.filter(resume => resume._id !== resumeId)
+        setScoringResult({
+          ...scoringResult,
+          scored_resumes: updatedResumes,
+          total_resumes: updatedResumes.length
+        })
+        
+        // Clear selection if deleted resume was selected
+        if (selectedResume && selectedResume._id === resumeId) {
+          setSelectedResume(null)
+        }
+      }
+      
+      toast.success('Resume deleted successfully!')
+    } catch (error: any) {
+      console.error('Error deleting resume:', error)
+      toast.error('Failed to delete resume. Please try again.')
+    } finally {
+      setDeletingResume(null)
+    }
   }
 
   if (loading) {
@@ -235,13 +293,26 @@ const ScoringResults = () => {
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className={`text-2xl font-bold ${getScoreColor(resume.score)}`}>
-                          {resume.match_percentage}%
+                      <div className="flex items-center space-x-3">
+                        <div className="text-right">
+                          <div className={`text-2xl font-bold ${getScoreColor(resume.score)}`}>
+                            {resume.match_percentage}%
+                          </div>
+                          <div className={`px-2 py-1 rounded-full text-xs font-medium ${getScoreBadge(resume.score)}`}>
+                            Score: {resume.score.toFixed(3)}
+                          </div>
                         </div>
-                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${getScoreBadge(resume.score)}`}>
-                          Score: {resume.score.toFixed(3)}
-                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteResume(resume._id, resume.title || resume.filename)
+                          }}
+                          disabled={deletingResume === resume._id}
+                          className="p-2 text-text-muted hover:text-red-500 transition-colors disabled:opacity-50"
+                          title="Delete resume"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
                     </div>
 

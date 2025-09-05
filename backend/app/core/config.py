@@ -28,10 +28,11 @@ class Settings(BaseSettings):
     ALLOWED_EXTENSIONS: list = [".pdf", ".docx"]
     
     # LLM Configuration
-    LLM_PROVIDER: str = "openai"  # Options: openai, gemini, anthropic, local
+    LLM_PROVIDER: str = "gemini"  # Options: openai, gemini, anthropic, local
     LLM_PROVIDER_API_KEY: str = ""
-    LLM_EMBEDDING_MODEL: str = "text-embedding-ada-002"
-    EMBEDDING_DIMENSION: int = 1536  # OpenAI ada-002 embedding dimension
+    LLM_MODEL: str = "gemini-1.5-pro"  # LLM model for text generation (e.g., gpt-3.5-turbo, gemini-1.5-pro)
+    LLM_EMBEDDING_MODEL: str = "text-embedding-004"  # Embedding model (e.g., text-embedding-ada-002, text-embedding-004)
+    EMBEDDING_DIMENSION: int = 768  # Embedding dimension (1536 for OpenAI, 768 for Gemini)
     
    
     

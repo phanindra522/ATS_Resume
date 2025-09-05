@@ -1,7 +1,12 @@
+"""
+Resume scoring endpoints - Updated to use advanced scoring service
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.database import get_database, get_chroma_collection
 from app.models.resume import ResumeWithScore
 from app.routers.auth import get_current_user
+from app.services.scoring import scorer
 import numpy as np
 from bson import ObjectId
 import re
@@ -9,170 +14,154 @@ from datetime import datetime
 
 router = APIRouter()
 
-# TODO: Replace with OpenAI embeddings when OpenAI integration is complete
-def generate_placeholder_embedding(text: str, dimension: int = 1536) -> np.ndarray:
-    """Generate a placeholder embedding for now - will be replaced with OpenAI"""
-    return np.random.rand(dimension)
-
-def extract_skills(text):
-    """Extract skills from text using common skill patterns"""
-    # Common technical skills
-    skills = [
-        'python', 'javascript', 'java', 'react', 'node.js', 'mongodb', 'sql',
-        'aws', 'docker', 'kubernetes', 'git', 'agile', 'scrum', 'machine learning',
-        'data analysis', 'project management', 'ui/ux', 'figma', 'photoshop',
-        'excel', 'powerpoint', 'word', 'salesforce', 'hubspot', 'marketing',
-        'seo', 'content creation', 'social media', 'email marketing'
-    ]
-    
-    found_skills = []
-    text_lower = text.lower()
-    
-    for skill in skills:
-        if skill in text_lower:
-            found_skills.append(skill.title())
-    
-    return found_skills
-
-def calculate_similarity_score(resume_embedding, job_embedding):
-    """Calculate cosine similarity between resume and job embeddings"""
-    resume_vec = np.array(resume_embedding)
-    job_vec = np.array(job_embedding)
-    
-    # Normalize vectors
-    resume_norm = np.linalg.norm(resume_vec)
-    job_norm = np.linalg.norm(job_vec)
-    
-    if resume_norm == 0 or job_norm == 0:
-        return 0.0
-    
-    # Calculate cosine similarity
-    similarity = np.dot(resume_vec, job_vec) / (resume_norm * job_norm)
-    return float(similarity)
-
 @router.post("/score/{job_id}")
-async def score_resumes_for_job(
-    job_id: str,
-    current_user = Depends(get_current_user)
-):
-    db = get_database()
-    
-    # Get job description
-    job = await db.jobs.find_one({
-        "_id": ObjectId(job_id),
-        "user_id": current_user["_id"]
-    })
-    
-    if not job:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Job not found"
-        )
-    
-    # Get all resumes for the user
-    resumes = await db.resumes.find({"user_id": current_user["_id"]}).to_list(length=100)
-    
-    if not resumes:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No resumes found"
-        )
-    
-    # Generate placeholder job embedding (will be replaced with OpenAI)
-    job_text = f"{job['title']} {job['company']} {job['description']} {' '.join(job['requirements'])} {' '.join(job['skills'])}"
-    job_embedding = generate_placeholder_embedding(job_text)
-    
-    scored_resumes = []
-    
-    for resume in resumes:
-        # Generate placeholder resume embedding (will be replaced with OpenAI)
-        resume_text = f"{resume['title']} {resume['content']}"
-        resume_embedding = generate_placeholder_embedding(resume_text)
+async def score_resumes_for_job(job_id: str, current_user = Depends(get_current_user)):
+    """Score all resumes against a specific job description using advanced scoring"""
+    try:
+        db = get_database()
         
-        # Calculate similarity score
-        similarity_score = calculate_similarity_score(resume_embedding, job_embedding)
+        # Get the job
+        job = await db.jobs.find_one({
+            "_id": job_id,
+            "user_id": current_user["_id"]
+        })
         
-        # Extract skills from resume
-        resume_skills = extract_skills(resume['content'])
-        job_skills = [skill.lower() for skill in job['skills']]
+        if not job:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Job not found"
+            )
         
-        # Calculate skills match
-        skills_match = [skill for skill in resume_skills if skill.lower() in job_skills]
-        missing_skills = [skill for skill in job_skills if skill not in [s.lower() for s in resume_skills]]
+        # Get all resumes for the user
+        resumes_cursor = await db.resumes.find({"user_id": current_user["_id"]})
+        resumes = await resumes_cursor.to_list(length=100)
         
-        # Calculate match percentage (placeholder for now)
-        match_percentage = min(100.0, max(0.0, similarity_score * 100))
+        if not resumes:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No resumes found"
+            )
         
-        scored_resume = {
-            **resume,
-            "score": similarity_score,
-            "match_percentage": match_percentage,
-            "skills_match": skills_match,
-            "missing_skills": missing_skills
+        # Use the advanced scoring service
+        scored_resumes = []
+        
+        for resume in resumes:
+            # Score resume using the advanced scoring service
+            scoring_breakdown = scorer.score_resume(resume, job)
+            
+            # Create scored resume with the breakdown
+            scored_resume = {
+                **resume,
+                "score": scoring_breakdown.total_score,
+                "match_percentage": scoring_breakdown.match_percentage,
+                "skills_match": scoring_breakdown.skills_match,
+                "missing_skills": scoring_breakdown.missing_skills,
+                "score_breakdown": {
+                    "keyword_match": scoring_breakdown.keyword_match,
+                    "skills_alignment": scoring_breakdown.skills_alignment,
+                    "experience_relevance": scoring_breakdown.experience_relevance,
+                    "education_alignment": scoring_breakdown.education_alignment,
+                    "semantic_similarity": scoring_breakdown.semantic_similarity
+                }
+            }
+            scored_resumes.append(scored_resume)
+        
+        # Sort by score (highest first)
+        scored_resumes.sort(key=lambda x: x["score"], reverse=True)
+        
+        # Save scoring results
+        scoring_result = {
+            "user_id": current_user["_id"],
+            "job_id": job_id,
+            "scored_resumes": scored_resumes,
+            "created_at": datetime.utcnow()
         }
-        scored_resumes.append(scored_resume)
-    
-    # Sort by score (highest first)
-    scored_resumes.sort(key=lambda x: x["score"], reverse=True)
-    
-    # Save scoring results
-    scoring_result = {
-        "user_id": current_user["_id"],
-        "job_id": ObjectId(job_id),
-        "scored_resumes": scored_resumes,
-        "created_at": datetime.utcnow()
-    }
-    
-    await db.scoring_results.insert_one(scoring_result)
-    
-    return {
-        "job": job,
-        "scored_resumes": [ResumeWithScore(**resume) for resume in scored_resumes]
-    }
+        
+        # Save to database
+        await db.scoring_results.insert_one(scoring_result)
+        
+        return {
+            "job": job,
+            "scored_resumes": scored_resumes,
+            "total_resumes": len(scored_resumes)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error scoring resumes: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to score resumes: {str(e)}"
+        )
 
 @router.get("/results/{job_id}")
 async def get_scoring_results(job_id: str, current_user = Depends(get_current_user)):
-    db = get_database()
-    
-    scoring_result = await db.scoring_results.find_one({
-        "job_id": ObjectId(job_id),
-        "user_id": current_user["_id"]
-    }, sort=[("created_at", -1)])
-    
-    if not scoring_result:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No scoring results found for this job"
-        )
-    
-    return scoring_result
-
-@router.get("/history")
-async def get_scoring_history(current_user = Depends(get_current_user)):
-    db = get_database()
-    
-    # Get scoring history with job details
-    pipeline = [
-        {"$match": {"user_id": current_user["_id"]}},
-        {"$sort": {"created_at": -1}},
-        {
-            "$lookup": {
-                "from": "jobs",
-                "localField": "job_id",
-                "foreignField": "_id",
-                "as": "job"
-            }
-        },
-        {"$unwind": "$job"},
-        {
-            "$project": {
-                "scoring_id": "$_id",
-                "job": "$job",
-                "scored_resumes_count": {"$size": "$scored_resumes"},
-                "created_at": "$created_at"
-            }
+    """Get scoring results for a specific job"""
+    try:
+        db = get_database()
+        
+        # Get the most recent scoring result for this job
+        result = await db.scoring_results.find_one({
+            "job_id": job_id,
+            "user_id": current_user["_id"]
+        }, sort=[("created_at", -1)])
+        
+        if not result:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No scoring results found for this job"
+            )
+        
+        # Get the job details
+        job = await db.jobs.find_one({
+            "_id": job_id,
+            "user_id": current_user["_id"]
+        })
+        
+        if not job:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Job not found"
+            )
+        
+        return {
+            "job": job,
+            "scored_resumes": result["scored_resumes"],
+            "total_resumes": len(result["scored_resumes"]),
+            "created_at": result["created_at"]
         }
-    ]
-    
-    history = await db.scoring_results.aggregate(pipeline).to_list(length=100)
-    return history
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error getting scoring results: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get scoring results: {str(e)}"
+        )
+
+@router.get("/results")
+async def get_all_scoring_results(current_user = Depends(get_current_user)):
+    """Get all scoring results for the current user"""
+    try:
+        db = get_database()
+        
+        # Get all scoring results for the user
+        results_cursor = await db.scoring_results.find({"user_id": current_user["_id"]})
+        results = await results_cursor.to_list(length=100)
+        
+        # Sort by creation date (newest first)
+        results.sort(key=lambda x: x["created_at"], reverse=True)
+        
+        return {
+            "scoring_results": results,
+            "total_results": len(results)
+        }
+        
+    except Exception as e:
+        print(f"Error getting all scoring results: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get scoring results: {str(e)}"
+        )

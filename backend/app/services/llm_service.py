@@ -34,7 +34,7 @@ class OpenAIService(LLMService):
             prompt = self._create_job_parsing_prompt(text)
             
             response = await client.chat.completions.create(
-                model="gpt-3.5-turbo",  # Default model for OpenAI
+                model=settings.LLM_MODEL,  # Configurable model for OpenAI
                 messages=[
                     {"role": "system", "content": "You are an expert at parsing job descriptions and extracting structured information."},
                     {"role": "user", "content": prompt}
@@ -122,7 +122,7 @@ class GeminiService(LLMService):
             import google.generativeai as genai
             
             genai.configure(api_key=self.api_key)
-            model = genai.GenerativeModel("gemini-pro")  # Default model for Gemini
+            model = genai.GenerativeModel(settings.LLM_MODEL)  # Configurable model for Gemini
             
             prompt = self._create_job_parsing_prompt(text)
             

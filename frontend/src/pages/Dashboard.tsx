@@ -10,7 +10,8 @@ import {
   Plus,
   TrendingUp,
   Users,
-  Briefcase
+  Briefcase,
+  Trash2
 } from 'lucide-react'
 import { api } from '../lib/api'
 
@@ -37,6 +38,8 @@ const Dashboard = () => {
   const [resumes, setResumes] = useState<Resume[]>([])
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
+  const [deletingResume, setDeletingResume] = useState<string | null>(null)
+  const [deletingJob, setDeletingJob] = useState<string | null>(null)
 
   useEffect(() => {
     fetchDashboardData()
@@ -63,6 +66,50 @@ const Dashboard = () => {
       day: 'numeric',
       year: 'numeric'
     })
+  }
+
+  const handleDeleteResume = async (resumeId: string, resumeTitle: string) => {
+    if (!confirm(`Are you sure you want to delete "${resumeTitle}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      setDeletingResume(resumeId)
+      await api.delete(`/resumes/${resumeId}`)
+      
+      // Remove from local state
+      setResumes(resumes.filter(resume => resume._id !== resumeId))
+      
+      // Show success message
+      alert('Resume deleted successfully!')
+    } catch (error: any) {
+      console.error('Error deleting resume:', error)
+      alert('Failed to delete resume. Please try again.')
+    } finally {
+      setDeletingResume(null)
+    }
+  }
+
+  const handleDeleteJob = async (jobId: string, jobTitle: string) => {
+    if (!confirm(`Are you sure you want to delete "${jobTitle}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      setDeletingJob(jobId)
+      await api.delete(`/jobs/${jobId}`)
+      
+      // Remove from local state
+      setJobs(jobs.filter(job => job._id !== jobId))
+      
+      // Show success message
+      alert('Job deleted successfully!')
+    } catch (error: any) {
+      console.error('Error deleting job:', error)
+      alert('Failed to delete job. Please try again.')
+    } finally {
+      setDeletingJob(null)
+    }
   }
 
   if (loading) {
@@ -230,9 +277,19 @@ const Dashboard = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2 text-sm text-text-secondary">
-                      <Clock size={16} />
-                      <span>{formatDate(resume.created_at)}</span>
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2 text-sm text-text-secondary">
+                        <Clock size={16} />
+                        <span>{formatDate(resume.created_at)}</span>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteResume(resume._id, resume.title)}
+                        disabled={deletingResume === resume._id}
+                        className="p-1 text-text-muted hover:text-red-500 transition-colors disabled:opacity-50"
+                        title="Delete resume"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -279,9 +336,19 @@ const Dashboard = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2 text-sm text-text-secondary">
-                      <Clock size={16} />
-                      <span>{formatDate(job.created_at)}</span>
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2 text-sm text-text-secondary">
+                        <Clock size={16} />
+                        <span>{formatDate(job.created_at)}</span>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteJob(job._id, job.title)}
+                        disabled={deletingJob === job._id}
+                        className="p-1 text-text-muted hover:text-red-500 transition-colors disabled:opacity-50"
+                        title="Delete job"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
                 ))}
