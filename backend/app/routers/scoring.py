@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.database import get_database, get_chroma_collection
 from app.models.resume import ResumeWithScore
 from app.routers.auth import get_current_user
-from app.services.scoring import scorer
+from app.services.scoring_coordinator import coordinator
 import numpy as np
 from bson import ObjectId
 import re
@@ -14,7 +14,81 @@ from datetime import datetime
 
 router = APIRouter()
 
-@router.post("/score/{job_id}")
+@router.post(
+    "/score/{job_id}",
+    summary="Score resumes against a job description",
+    description="""
+    Analyze and score all user resumes against a specific job description using the multi-agent scoring system.
+    
+    **Multi-Agent Scoring Process:**
+    This endpoint uses 5 specialized AI agents to provide comprehensive analysis:
+    
+    1. **Keyword Matching Agent (20%)**: Identifies exact keyword matches between resume and job description
+    2. **Skill Matching Agent (25%)**: Matches technical and soft skills using intelligent taxonomy
+    3. **Experience Relevance Agent (20%)**: Analyzes years of experience and seniority level alignment
+    4. **Education Alignment Agent (10%)**: Matches educational background with job requirements
+    5. **Semantic Similarity Agent (25%)**: Analyzes semantic similarity using vector embeddings
+    
+    **Scoring Algorithm:**
+    ```
+    Total Score = (Keyword × 0.20) + (Skills × 0.25) + (Experience × 0.20) + (Education × 0.10) + (Semantic × 0.25)
+    ```
+    
+    **Processing:**
+    - All agents run in parallel for optimal performance
+    - Results include detailed breakdown and evidence
+    - Confidence scores indicate reliability of analysis
+    - Results are automatically saved for future reference
+    
+    **Authentication Required:**
+    This endpoint requires a valid JWT token and the job must belong to the authenticated user.
+    """,
+    responses={
+        200: {
+            "description": "Scoring completed successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "Scoring completed successfully",
+                        "job_id": "507f1f77bcf86cd799439011",
+                        "total_resumes_scored": 5,
+                        "results": [
+                            {
+                                "resume_id": "507f1f77bcf86cd799439012",
+                                "resume_title": "Software Engineer Resume",
+                                "total_score": 0.85,
+                                "match_percentage": 85.0,
+                                "confidence": 0.92,
+                                "agent_breakdown": {
+                                    "keyword_matching": {"score": 0.80, "percentage": 80.0},
+                                    "skill_matching": {"score": 0.90, "percentage": 90.0},
+                                    "experience_relevance": {"score": 0.75, "percentage": 75.0},
+                                    "education_alignment": {"score": 0.95, "percentage": 95.0},
+                                    "semantic_similarity": {"score": 0.88, "percentage": 88.0}
+                                },
+                                "skills_match": ["Python", "React", "AWS", "Docker"],
+                                "missing_skills": ["Kubernetes", "GraphQL"]
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        404: {
+            "description": "Job not found or no resumes available",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Job not found"
+                    }
+                }
+            }
+        },
+        401: {
+            "description": "Unauthorized - Invalid or missing token"
+        }
+    }
+)
 async def score_resumes_for_job(job_id: str, current_user = Depends(get_current_user)):
     """Score all resumes against a specific job description using advanced scoring"""
     try:
@@ -42,12 +116,12 @@ async def score_resumes_for_job(job_id: str, current_user = Depends(get_current_
                 detail="No resumes found"
             )
         
-        # Use the advanced scoring service
+        # Use the multi-agent scoring coordinator
         scored_resumes = []
         
         for resume in resumes:
-            # Score resume using the advanced scoring service
-            scoring_breakdown = scorer.score_resume(resume, job)
+            # Score resume using the multi-agent coordinator
+            scoring_breakdown = await coordinator.score_resume(resume, job)
             
             # Create scored resume with the breakdown
             scored_resume = {
@@ -62,7 +136,9 @@ async def score_resumes_for_job(job_id: str, current_user = Depends(get_current_
                     "experience_relevance": scoring_breakdown.experience_relevance,
                     "education_alignment": scoring_breakdown.education_alignment,
                     "semantic_similarity": scoring_breakdown.semantic_similarity
-                }
+                },
+                "confidence": scoring_breakdown.confidence,
+                "timestamp": scoring_breakdown.timestamp.isoformat()
             }
             scored_resumes.append(scored_resume)
         
@@ -164,4 +240,23 @@ async def get_all_scoring_results(current_user = Depends(get_current_user)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get scoring results: {str(e)}"
+        )
+
+
+@router.get("/formula")
+async def get_scoring_formula():
+    """Get the scoring formula used by the multi-agent system"""
+    try:
+        formula = coordinator.get_scoring_formula()
+        agent_status = await coordinator.get_agent_status()
+        
+        return {
+            "formula": formula,
+            "agents": agent_status,
+            "total_weight": sum(agent["weight"] for agent in agent_status.values())
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get scoring formula: {str(e)}"
         )
