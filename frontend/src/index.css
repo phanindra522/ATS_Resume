@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Color fix for multi-agent progress bars */
+
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;

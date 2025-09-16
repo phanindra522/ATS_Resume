@@ -501,9 +501,9 @@ const ScoringResults = () => {
                               <div className="w-full bg-surface-200 rounded-full h-2">
                                 <div
                                   className={`h-2 rounded-full transition-all duration-300 ${
-                                    breakdown.percentage >= 80 ? 'bg-success-500' :
-                                    breakdown.percentage >= 60 ? 'bg-warning-500' :
-                                    breakdown.percentage >= 40 ? 'bg-orange-500' : 'bg-error-500'
+                                    breakdown.percentage >= 80 ? 'bg-green-500' :
+                                    breakdown.percentage >= 60 ? 'bg-yellow-500' :
+                                    breakdown.percentage >= 40 ? 'bg-orange-500' : 'bg-red-500'
                                   }`}
                                   style={{ width: `${breakdown.percentage}%` }}
                                 />
