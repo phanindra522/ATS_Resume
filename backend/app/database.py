@@ -90,18 +90,26 @@ async def init_db():
     load_data_from_files()
 
     # Initialize ChromaDB
-    chroma_client = chromadb.PersistentClient(
-        path=settings.CHROMA_PERSIST_DIRECTORY,
-        settings=ChromaSettings(
-            anonymized_telemetry=False
-        )
-    )
-
-    # Get or create collection for resume embeddings
     try:
-        chroma_collection = chroma_client.get_collection("resume_embeddings")
-    except:
-        chroma_collection = chroma_client.create_collection("resume_embeddings")
+        chroma_client = chromadb.PersistentClient(
+            path=settings.CHROMA_PERSIST_DIRECTORY,
+            settings=ChromaSettings(
+                anonymized_telemetry=False
+            )
+        )
+
+        # Get or create collection for resume embeddings
+        try:
+            chroma_collection = chroma_client.get_collection("resume_embeddings")
+        except:
+            chroma_collection = chroma_client.create_collection("resume_embeddings")
+        
+        print("✅ ChromaDB initialized successfully")
+    except Exception as e:
+        print(f"⚠️ ChromaDB initialization failed: {e}")
+        print("Continuing without ChromaDB (embeddings will not be available)")
+        chroma_client = None
+        chroma_collection = None
 
     print("✅ In-memory database initialized with persistence")
     print(f" Collections: {list(in_memory_db.keys())}")
