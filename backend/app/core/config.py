@@ -30,9 +30,20 @@ class Settings(BaseSettings):
     # LLM Configuration
     LLM_PROVIDER: str = "gemini"  # Options: openai, gemini, anthropic, local
     LLM_PROVIDER_API_KEY: str = ""
-    LLM_MODEL: str = "gemini-1.5-pro"  # LLM model for text generation (e.g., gpt-3.5-turbo, gemini-1.5-pro)
+    LLM_MODEL: str = "gemini-1.5-flash"  # LLM model for text generation (e.g., gpt-3.5-turbo, gemini-1.5-flash)
     LLM_EMBEDDING_MODEL: str = "text-embedding-004"  # Embedding model (e.g., text-embedding-ada-002, text-embedding-004)
     EMBEDDING_DIMENSION: int = 768  # Embedding dimension (1536 for OpenAI, 768 for Gemini)
+    
+    # LLM Enhancement Flags for Multi-Agent System
+    USE_LLM_FOR_KEYWORDS: bool = True      # Enable LLM for keyword extraction
+    USE_LLM_FOR_SKILLS: bool = True        # Enable LLM for skill normalization
+    USE_LLM_FOR_EXPERIENCE: bool = False   # Enable LLM for experience analysis
+    USE_LLM_FOR_EDUCATION: bool = False    # Enable LLM for education analysis
+    
+    # LLM Fallback Settings
+    LLM_FALLBACK_ENABLED: bool = True      # Enable fallback to rule-based when LLM fails
+    LLM_TIMEOUT_SECONDS: int = 10          # Timeout for LLM API calls
+    LLM_RETRY_ATTEMPTS: int = 2            # Number of retry attempts for failed LLM calls
     
    
     

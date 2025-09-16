@@ -119,19 +119,19 @@ class MultiAgentScoringCoordinator:
                 skills_match = evidence.get('matched_skills', [])
                 missing_skills = evidence.get('missing_skills', [])
             
-            # Create structured breakdown
+            # Create structured breakdown with rounded percentages
             breakdown = ScoringBreakdown(
                 keyword_match=self._format_agent_result(agent_results.get(AgentType.KEYWORD_MATCHING.value)),
                 skills_alignment=self._format_agent_result(agent_results.get(AgentType.SKILL_MATCHING.value)),
                 experience_relevance=self._format_agent_result(agent_results.get(AgentType.EXPERIENCE_RELEVANCE.value)),
                 education_alignment=self._format_agent_result(agent_results.get(AgentType.EDUCATION_ALIGNMENT.value)),
                 semantic_similarity=self._format_agent_result(agent_results.get(AgentType.SEMANTIC_SIMILARITY.value)),
-                total_score=total_score,
-                match_percentage=total_score * 100,
+                total_score=round(total_score, 2),
+                match_percentage=round(total_score * 100, 2),
                 skills_match=skills_match,
                 missing_skills=missing_skills,
                 agent_results=agent_results,
-                confidence=total_confidence,
+                confidence=round(total_confidence, 2),
                 timestamp=datetime.utcnow()
             )
             
@@ -165,10 +165,10 @@ class MultiAgentScoringCoordinator:
             }
         
         return {
-            "score": result.score,
-            "percentage": result.percentage,
+            "score": round(result.score, 2),
+            "percentage": round(result.percentage, 2),
             "weight": int(result.weight * 100),
-            "confidence": result.confidence,
+            "confidence": round(result.confidence, 2),
             "evidence": result.evidence,
             "error": result.error
         }

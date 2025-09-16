@@ -15,6 +15,11 @@ class LLMService(ABC):
     async def parse_job_description(self, text: str) -> Dict[str, Any]:
         """Parse job description text and return structured data"""
         pass
+    
+    @abstractmethod
+    async def generate_completion(self, prompt: str, temperature: float = 0.1, max_tokens: int = 1000) -> str:
+        """Generate completion for custom prompts"""
+        pass
 
 class OpenAIService(LLMService):
     """OpenAI GPT service implementation"""
@@ -34,7 +39,7 @@ class OpenAIService(LLMService):
             prompt = self._create_job_parsing_prompt(text)
             
             response = await client.chat.completions.create(
-                model=settings.LLM_MODEL,  # Configurable model for OpenAI
+                model="gpt-3.5-turbo",  # Configurable model for OpenAI
                 messages=[
                     {"role": "system", "content": "You are an expert at parsing job descriptions and extracting structured information."},
                     {"role": "user", "content": prompt}
@@ -45,6 +50,30 @@ class OpenAIService(LLMService):
             
             result_text = response.choices[0].message.content
             return self._parse_llm_response(result_text)
+            
+        except ImportError:
+            raise ImportError("OpenAI package not installed. Run: pip install openai")
+        except Exception as e:
+            raise Exception(f"OpenAI API error: {str(e)}")
+    
+    async def generate_completion(self, prompt: str, temperature: float = 0.1, max_tokens: int = 1000) -> str:
+        """Generate completion for custom prompts using OpenAI"""
+        try:
+            import openai
+            
+            client = openai.AsyncOpenAI(api_key=self.api_key)
+            
+            response = await client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are an expert at analyzing text and extracting structured information."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+            
+            return response.choices[0].message.content
             
         except ImportError:
             raise ImportError("OpenAI package not installed. Run: pip install openai")
@@ -122,7 +151,7 @@ class GeminiService(LLMService):
             import google.generativeai as genai
             
             genai.configure(api_key=self.api_key)
-            model = genai.GenerativeModel(settings.LLM_MODEL)  # Configurable model for Gemini
+            model = genai.GenerativeModel("gemini-1.5-flash")  # Configurable model for Gemini
             
             prompt = self._create_job_parsing_prompt(text)
             
@@ -130,6 +159,32 @@ class GeminiService(LLMService):
             result_text = response.text
             
             return self._parse_llm_response(result_text)
+            
+        except ImportError:
+            raise ImportError("Google Generative AI package not installed. Run: pip install google-generativeai")
+        except Exception as e:
+            raise Exception(f"Gemini API error: {str(e)}")
+    
+    async def generate_completion(self, prompt: str, temperature: float = 0.1, max_tokens: int = 1000) -> str:
+        """Generate completion for custom prompts using Gemini"""
+        try:
+            import google.generativeai as genai
+            
+            genai.configure(api_key=self.api_key)
+            model = genai.GenerativeModel("gemini-1.5-flash")
+            
+            # Configure generation parameters
+            generation_config = genai.types.GenerationConfig(
+                temperature=temperature,
+                max_output_tokens=max_tokens,
+            )
+            
+            response = await model.generate_content_async(
+                prompt,
+                generation_config=generation_config
+            )
+            
+            return response.text
             
         except ImportError:
             raise ImportError("Google Generative AI package not installed. Run: pip install google-generativeai")

@@ -18,6 +18,15 @@ import {
 import { api } from '../lib/api'
 import toast from 'react-hot-toast'
 
+interface ScoreBreakdown {
+  score: number
+  percentage: number
+  weight: number
+  confidence?: number
+  evidence?: any
+  error?: string
+}
+
 interface ScoredResume {
   _id: string
   title: string
@@ -27,6 +36,15 @@ interface ScoredResume {
   skills_match: string[]
   missing_skills: string[]
   created_at: string
+  confidence?: number
+  timestamp?: string
+  score_breakdown?: {
+    keyword_match: ScoreBreakdown
+    skills_alignment: ScoreBreakdown
+    experience_relevance: ScoreBreakdown
+    education_alignment: ScoreBreakdown
+    semantic_similarity: ScoreBreakdown
+  }
 }
 
 interface Job {
@@ -53,13 +71,26 @@ const ScoringResults = () => {
   const [loading, setLoading] = useState(true)
   const [selectedResume, setSelectedResume] = useState<ScoredResume | null>(null)
   const [deletingResume, setDeletingResume] = useState<string | null>(null)
+  const [isScoring, setIsScoring] = useState(false) // Prevent duplicate calls
 
   useEffect(() => {
-    if (jobId) {
-      fetchScoringResults(jobId)
-    } else {
-      // If no jobId provided, try to get the first available job
-      fetchFirstJobAndScore()
+    let isMounted = true
+    
+    const loadData = async () => {
+      if (jobId) {
+        await fetchScoringResults(jobId)
+      } else {
+        // If no jobId provided, try to get the first available job
+        await fetchFirstJobAndScore()
+      }
+    }
+    
+    if (isMounted) {
+      loadData()
+    }
+    
+    return () => {
+      isMounted = false
     }
   }, [jobId])
 
@@ -84,13 +115,22 @@ const ScoringResults = () => {
   }
 
   const fetchScoringResults = async (id: string) => {
+    // Prevent duplicate calls
+    if (isScoring) {
+      console.log('Scoring already in progress, skipping duplicate call')
+      return
+    }
+    
     try {
+      setIsScoring(true)
+      setLoading(true)
       const response = await api.post(`/scoring/score/${id}`)
       setScoringResult(response.data)
     } catch (error: any) {
       toast.error(error.response?.data?.detail || 'Failed to fetch scoring results')
     } finally {
       setLoading(false)
+      setIsScoring(false)
     }
   }
 
@@ -175,6 +215,11 @@ const ScoringResults = () => {
               </h1>
               <p className="text-xl text-text-secondary">
                 {total_resumes} candidates scored for this position
+                {isScoring && (
+                  <span className="ml-2 text-primary-600 font-medium">
+                    🔄 Multi-agent analysis in progress...
+                  </span>
+                )}
               </p>
             </div>
             <Link to="/dashboard" className="btn-secondary">
@@ -433,6 +478,58 @@ const ScoringResults = () => {
                       </div>
                     </div>
 
+                    {/* Multi-Agent Breakdown */}
+                    {selectedResume.score_breakdown && (
+                      <div>
+                        <h5 className="font-medium text-text-primary mb-3">Multi-Agent Analysis</h5>
+                        <div className="space-y-3">
+                          {Object.entries(selectedResume.score_breakdown).map(([agentName, breakdown]) => (
+                            <div key={agentName} className="p-3 bg-surface-50 rounded-lg">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-medium text-text-primary capitalize">
+                                  {agentName.replace('_', ' ')}
+                                </span>
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-sm font-bold text-text-primary">
+                                    {breakdown.percentage.toFixed(1)}%
+                                  </span>
+                                  <span className="text-xs text-text-muted">
+                                    (weight: {breakdown.weight}%)
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="w-full bg-surface-200 rounded-full h-2">
+                                <div
+                                  className={`h-2 rounded-full transition-all duration-300 ${
+                                    breakdown.percentage >= 80 ? 'bg-success-500' :
+                                    breakdown.percentage >= 60 ? 'bg-warning-500' :
+                                    breakdown.percentage >= 40 ? 'bg-orange-500' : 'bg-error-500'
+                                  }`}
+                                  style={{ width: `${breakdown.percentage}%` }}
+                                />
+                              </div>
+                              {breakdown.confidence && (
+                                <div className="text-xs text-text-muted mt-1">
+                                  Confidence: {(breakdown.confidence * 100).toFixed(0)}%
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {selectedResume.confidence && (
+                          <div className="mt-3 p-3 bg-primary-50 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-primary-700">Overall Confidence</span>
+                              <span className="text-sm font-bold text-primary-700">
+                                {(selectedResume.confidence * 100).toFixed(0)}%
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <div className="pt-4 border-t border-surface-200">
                       <p className="text-xs text-text-muted">
                         Uploaded: {new Date(selectedResume.created_at).toLocaleDateString()}
@@ -493,6 +590,43 @@ const ScoringResults = () => {
                 {total_resumes}
               </p>
               <p className="text-sm text-text-secondary">Total Candidates</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Multi-Agent Formula Info */}
+        <div className="mt-8">
+          <div className="card p-6">
+            <h3 className="text-lg font-semibold text-text-primary mb-4">Scoring Formula</h3>
+            <div className="bg-surface-50 p-4 rounded-lg">
+              <p className="text-sm text-text-secondary mb-3">
+                This scoring system uses a multi-agent architecture with the following weighted formula:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-lg font-bold text-primary-600">20%</div>
+                  <div className="text-sm text-text-secondary">Keyword Match</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-lg font-bold text-primary-600">25%</div>
+                  <div className="text-sm text-text-secondary">Skills Alignment</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-lg font-bold text-primary-600">20%</div>
+                  <div className="text-sm text-text-secondary">Experience Relevance</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-lg font-bold text-primary-600">10%</div>
+                  <div className="text-sm text-text-secondary">Education Alignment</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg">
+                  <div className="text-lg font-bold text-primary-600">25%</div>
+                  <div className="text-sm text-text-secondary">Semantic Similarity</div>
+                </div>
+              </div>
+              <p className="text-xs text-text-muted mt-3">
+                Each agent analyzes different aspects of the resume and job match, providing detailed evidence for scoring decisions.
+              </p>
             </div>
           </div>
         </div>
