@@ -41,12 +41,30 @@ npm run dev
 **Frontend will be available at:** http://localhost:5173
 
 ### Backend Setup
+
+#### 1. Environment Configuration
+```bash
+# Copy the example environment file
+copy .env.example .env  # Windows
+# cp .env.example .env  # Linux/Mac
+
+# Edit .env file and add your credentials:
+# - OpenAI API key for LLM features
+# - MongoDB URL if using external database
+# - Adjust other settings as needed
+```
+
+#### 2. Install Dependencies
 ```bash
 cd backend
 python -m venv venv
 venv\Scripts\activate  # Windows
 # source venv/bin/activate  # Linux/Mac
 pip install -r requirements.txt
+```
+
+#### 3. Start the Server
+```bash
 python main.py
 ```
 **Backend will be available at:** http://localhost:8000
@@ -71,11 +89,34 @@ ATS_Resume/
 - **Results Dashboard**: Clean, actionable insights
 - **Responsive Design**: Works on all devices
 
+## 🔒 Security & Environment Variables
+
+### Important Security Notes:
+- **Never commit `.env` files** to version control
+- Use `.env.example` as a template for required environment variables
+- Store sensitive credentials securely (API keys, database URLs, etc.)
+- Change default SECRET_KEY in production
+
+### Required Environment Variables:
+```bash
+# OpenAI Configuration (Required for LLM features)
+LLM_PROVIDER_API_KEY=your_openai_api_key_here
+LLM_MODEL=gpt-4.1-mini
+
+# Database (Optional - defaults to in-memory)
+MONGODB_URL=mongodb://localhost:27017
+
+# Security (Required for production)
+SECRET_KEY=your_secure_secret_key_here
+```
+
 ## ✅ Current Status
 
 **Application is fully operational and running!**
 
 - ✅ **Backend**: FastAPI server running on Python 3.12.4
+- ✅ **Security**: Environment variables properly configured
+- ✅ **LLM Integration**: OpenAI GPT-4.1-mini with rate limiting
 - ✅ **Frontend**: React + Vite development server running
 - ✅ **Dependencies**: All packages updated to latest secure versions
 - ✅ **Database**: Persistent in-memory database with ChromaDB
