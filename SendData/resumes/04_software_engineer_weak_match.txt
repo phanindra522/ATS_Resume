@@ -1,0 +1,43 @@
+David Rodriguez
+Web Developer
+Email: david.rodriguez@email.com | Phone: (555) 456-7890
+Location: San Diego, CA
+
+PROFESSIONAL SUMMARY
+Entry-level Web Developer with 2 years of experience in basic web development. Eager to learn and grow in full-stack development with strong foundation in HTML, CSS, and JavaScript.
+
+TECHNICAL SKILLS
+• Programming Languages: JavaScript (basic), HTML5, CSS3
+• Frontend: HTML, CSS, jQuery
+• Tools: Git (basic), Visual Studio Code
+• Other: WordPress, Bootstrap
+• Learning: React, Node.js
+
+PROFESSIONAL EXPERIENCE
+
+Web Developer | Local Web Agency | 2022 - Present
+• Created and maintained websites using HTML, CSS, and JavaScript
+• Worked with WordPress themes and plugins
+• Implemented responsive designs using Bootstrap
+• Collaborated with small team on client projects
+• Learned modern development practices
+
+Junior Web Developer | Freelance | 2021 - 2022
+• Built simple websites for local businesses
+• Used HTML, CSS, and basic JavaScript
+• Worked with content management systems
+• Gained experience with client communication
+
+EDUCATION
+Associate Degree in Web Development
+San Diego Community College | 2019 - 2021
+GPA: 3.4/4.0
+
+PROJECTS
+• Restaurant Website: Built with HTML, CSS, and JavaScript
+• Portfolio Site: Created responsive design
+• Local Business Landing Page: Simple WordPress site
+
+CERTIFICATIONS
+• Web Development Certificate
+• HTML/CSS Fundamentals

@@ -1,0 +1,53 @@
+Elena Rodriguez
+Business Analyst
+Email: elena.rodriguez@email.com | Phone: (555) 012-3456
+Location: Miami, FL | LinkedIn: linkedin.com/in/elenarodriguez
+
+PROFESSIONAL SUMMARY
+Business Analyst with 3 years of experience in data analysis, reporting, and business intelligence. Strong analytical skills with basic knowledge of statistical methods and data visualization tools.
+
+TECHNICAL SKILLS
+• Data Analysis: Excel, SQL (basic), Tableau, Power BI
+• Programming: Python (basic), R (basic)
+• Databases: MySQL, Access
+• Visualization: Tableau, Power BI, Excel charts
+• Other: Statistical Analysis (basic), A/B Testing
+• Tools: Microsoft Office, Google Analytics
+
+PROFESSIONAL EXPERIENCE
+
+Business Analyst | FinanceCorp | 2021 - Present
+• Analyzed business data to identify trends and opportunities
+• Created reports and dashboards using Tableau and Power BI
+• Performed basic statistical analysis and data mining
+• Collaborated with stakeholders to define reporting requirements
+• Assisted in A/B testing and performance analysis
+
+Data Analyst | Marketing Agency | 2019 - 2021
+• Analyzed marketing campaign performance and customer data
+• Created visualizations and reports for client presentations
+• Used Excel and basic SQL for data analysis
+• Worked with Google Analytics and social media metrics
+• Assisted in market research and competitive analysis
+
+Junior Analyst | Consulting Firm | 2018 - 2019
+• Supported senior analysts with data collection and analysis
+• Created basic reports and presentations
+• Learned data analysis tools and methodologies
+• Gained experience with business intelligence platforms
+
+EDUCATION
+Bachelor of Business Administration
+Florida International University | 2014 - 2018
+Concentration: Business Analytics
+GPA: 3.5/4.0
+
+CERTIFICATIONS
+• Tableau Desktop Specialist
+• Google Analytics Certified
+• Microsoft Excel Expert
+
+PROJECTS
+• Sales Performance Dashboard: Created using Tableau
+• Customer Behavior Analysis: Analyzed using Excel and basic statistics
+• Marketing ROI Analysis: Developed reporting framework

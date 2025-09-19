@@ -1,0 +1,66 @@
+Alexandra Martinez
+Senior Product Manager
+Email: alexandra.martinez@email.com | Phone: (555) 567-8901
+Location: Seattle, WA | LinkedIn: linkedin.com/in/alexandramartinez
+
+PROFESSIONAL SUMMARY
+Experienced Senior Product Manager with 6+ years of expertise in digital product strategy, agile development, and cross-functional team leadership. Proven track record of launching successful products and driving user engagement. Strong background in product analytics and user research.
+
+TECHNICAL SKILLS
+• Product Management: Product Strategy, Roadmap Planning, Feature Prioritization
+• Agile/Scrum: Sprint Planning, User Stories, Backlog Management
+• Analytics: Google Analytics, Mixpanel, Amplitude, A/B Testing
+• User Research: User Interviews, Surveys, Usability Testing, Personas
+• Tools: Jira, Confluence, Figma, Miro, Slack
+• Data Analysis: SQL (basic), Excel, Tableau
+• Other: API Integration, Technical Documentation
+
+PROFESSIONAL EXPERIENCE
+
+Senior Product Manager | InnovateTech Inc. | 2021 - Present
+• Led product strategy for flagship digital platform serving 1M+ users
+• Managed cross-functional team of 12 engineers, designers, and analysts
+• Increased user engagement by 40% through data-driven product decisions
+• Launched 3 major product features with 95% user satisfaction
+• Conducted user research and A/B testing to optimize product experience
+• Collaborated with engineering and design teams in agile environment
+• Presented product updates to executive leadership and stakeholders
+
+Product Manager | TechStart | 2019 - 2021
+• Managed product roadmap and feature prioritization for mobile app
+• Led product discovery and user research initiatives
+• Worked with engineering teams to define technical requirements
+• Analyzed product metrics and user behavior to drive improvements
+• Coordinated product launches and go-to-market strategies
+• Mentored junior product managers and analysts
+
+Associate Product Manager | Digital Solutions | 2018 - 2019
+• Supported senior product managers with feature development
+• Created user stories and acceptance criteria for development teams
+• Conducted competitive analysis and market research
+• Assisted in product analytics and performance monitoring
+• Gained experience with agile development methodologies
+
+EDUCATION
+Master of Business Administration (MBA)
+University of Washington | 2016 - 2018
+Concentration: Technology Management
+Bachelor of Science in Computer Science
+University of Washington | 2012 - 2016
+GPA: 3.8/4.0
+
+CERTIFICATIONS
+• Certified Scrum Product Owner (CSPO)
+• Google Analytics Certified
+• Product Management Certificate - Stanford University
+
+ACHIEVEMENTS
+• Led product that generated $2M in additional revenue
+• Increased user retention by 35% through product optimization
+• Launched award-winning mobile application
+• Featured speaker at Product Management Conference 2023
+
+PROJECTS
+• Mobile App Redesign: Led complete UX overhaul resulting in 50% increase in user engagement
+• API Integration Platform: Managed development of third-party integration system
+• Analytics Dashboard: Designed and launched comprehensive product analytics platform

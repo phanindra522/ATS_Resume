@@ -1,0 +1,54 @@
+Ryan O'Connor
+Technical Product Manager
+Email: ryan.oconnor@email.com | Phone: (555) 012-3456
+Location: San Jose, CA | GitHub: github.com/ryanoconnor
+
+PROFESSIONAL SUMMARY
+Technical Product Manager with 5 years of experience in software development and product management. Strong technical background with expertise in API design, system architecture, and developer tools. Bridge between engineering and business teams.
+
+TECHNICAL SKILLS
+• Programming: Python, JavaScript, SQL, Java (basic)
+• Product Management: Technical Product Strategy, API Design, System Architecture
+• Development: RESTful APIs, Microservices, Database Design
+• Tools: Jira, Confluence, Postman, Git, Docker
+• Analytics: Google Analytics, Mixpanel, SQL Analytics
+• Other: Technical Documentation, Developer Relations
+• Cloud: AWS (basic), Azure (basic)
+
+PROFESSIONAL EXPERIENCE
+
+Technical Product Manager | API Solutions | 2020 - Present
+• Led product strategy for developer platform and API services
+• Designed API specifications and technical requirements
+• Collaborated with engineering teams on system architecture
+• Managed technical documentation and developer resources
+• Conducted technical customer interviews and requirements gathering
+• Worked with sales and marketing teams on technical positioning
+
+Software Engineer | TechStart | 2018 - 2020
+• Developed backend services and APIs using Python and JavaScript
+• Designed database schemas and optimized query performance
+• Built microservices architecture and integrated third-party APIs
+• Collaborated with product managers on technical requirements
+• Gained experience with agile development and product processes
+
+Junior Developer | Software Company | 2017 - 2018
+• Developed web applications using JavaScript and Python
+• Worked with databases and API integrations
+• Learned software development best practices
+• Gained experience with version control and testing
+
+EDUCATION
+Bachelor of Science in Computer Science
+San Jose State University | 2013 - 2017
+GPA: 3.5/4.0
+
+CERTIFICATIONS
+• AWS Certified Solutions Architect Associate
+• Google Cloud Professional Developer
+• API Design Certification
+
+PROJECTS
+• Developer Platform: Led product development for API management platform
+• Microservices Architecture: Designed scalable backend system
+• Technical Documentation: Created comprehensive API documentation

@@ -1,0 +1,57 @@
+Marcus Thompson
+Data Scientist
+Email: marcus.thompson@email.com | Phone: (555) 901-2345
+Location: Chicago, IL | GitHub: github.com/marcusthompson
+
+PROFESSIONAL SUMMARY
+Data Scientist with 4 years of experience in statistical analysis, machine learning, and data visualization. Strong background in Python, R, and SQL with expertise in building predictive models and extracting business insights.
+
+TECHNICAL SKILLS
+• Programming Languages: Python, R, SQL
+• Machine Learning: scikit-learn, pandas, NumPy, matplotlib
+• Data Analysis: Statistical modeling, hypothesis testing, regression analysis
+• Databases: PostgreSQL, MySQL, MongoDB
+• Visualization: Tableau, matplotlib, seaborn, Plotly
+• Cloud: AWS (basic), Google Cloud Platform
+• Tools: Jupyter, Git, Docker
+• Other: A/B Testing, Time Series Analysis
+
+PROFESSIONAL EXPERIENCE
+
+Data Scientist | AnalyticsCorp | 2020 - Present
+• Developed machine learning models for customer segmentation and churn prediction
+• Analyzed large datasets to identify trends and patterns
+• Built predictive models using Python and scikit-learn
+• Created interactive dashboards and reports using Tableau
+• Collaborated with business teams to define analytics requirements
+• Presented insights to stakeholders and management
+
+Data Analyst | DataInsights | 2018 - 2020
+• Performed statistical analysis and data mining on customer data
+• Built regression models and conducted hypothesis testing
+• Created data visualizations and reports for business users
+• Worked with SQL databases and performed data cleaning
+• Assisted in A/B testing and experimental design
+
+Research Assistant | University Lab | 2017 - 2018
+• Conducted statistical analysis for research projects
+• Used R and Python for data analysis and visualization
+• Assisted in writing research papers and reports
+• Gained experience with experimental design and statistical modeling
+
+EDUCATION
+Master of Science in Data Science
+University of Chicago | 2016 - 2018
+Bachelor of Science in Statistics
+University of Illinois | 2012 - 2016
+GPA: 3.7/4.0
+
+CERTIFICATIONS
+• Google Data Analytics Certificate
+• Tableau Desktop Specialist
+• AWS Cloud Practitioner
+
+PROJECTS
+• Sales Forecasting Model: Built time series model with 85% accuracy
+• Customer Segmentation: Developed clustering algorithm for marketing
+• A/B Testing Framework: Created statistical testing methodology

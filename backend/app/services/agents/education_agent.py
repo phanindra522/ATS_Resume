@@ -1,22 +1,52 @@
 """
-Education Alignment Agent
+Enhanced Education Alignment Agent
 
 This agent extracts degree level and field of study from resume and job,
 compares them, and returns score (full/partial/underqualified).
+Enhanced with LLM capabilities for better education extraction and analysis.
 """
 
 import re
+import json
 from typing import Dict, List, Any, Optional
 from .base_agent import BaseAgent, AgentResult, AgentType
+from app.services.llm_service import LLMServiceFactory
+from app.core.config import settings
 
 
 class EducationAlignmentAgent(BaseAgent):
-    """Agent for education alignment analysis"""
+    """Enhanced agent for education alignment analysis with LLM capabilities"""
     
     def __init__(self, weight: float = 0.10):
         super().__init__(AgentType.EDUCATION_ALIGNMENT, weight)
         self.degree_levels = self._init_degree_levels()
         self.field_mappings = self._init_field_mappings()
+        self.llm_service = None
+        self.use_llm = getattr(settings, 'USE_LLM_FOR_EDUCATION', True)
+        self._initialize_llm_service()
+    
+    def get_meta_prompt(self):
+        """Chain-of-thought meta prompt for education extraction"""
+        return (
+            "Think step by step about what makes a good prompt for education extraction:\n"
+            "1. What information should it capture (degree level, field of study, related fields)?\n"
+            "2. What edge cases (synonyms, ambiguous names, multiple degrees) should it handle?\n"
+            "3. What output format is most useful?\n"
+            "Now create a detailed prompt for extracting degree level and field of study from a resume or job description."
+        )
+
+    def _initialize_llm_service(self):
+        """Initialize LLM service if available"""
+        try:
+            if self.use_llm and settings.is_llm_configured():
+                self.llm_service = LLMServiceFactory.get_default_service()
+                print(f"✅ LLM service initialized for Education Agent: {settings.LLM_PROVIDER}")
+            else:
+                print(f"⚠️ LLM service not available for Education Agent. Using rule-based approach.")
+                self.use_llm = False
+        except Exception as e:
+            print(f"❌ Failed to initialize LLM service for Education Agent: {e}")
+            self.use_llm = False
     
     def _init_degree_levels(self) -> Dict[str, int]:
         """Initialize degree level hierarchy"""
@@ -67,16 +97,17 @@ class EducationAlignmentAgent(BaseAgent):
         }
     
     async def analyze(self, resume: Dict[str, Any], job: Dict[str, Any]) -> AgentResult:
-        """Analyze education alignment between resume and job"""
+        """Analyze education alignment between resume and job using enhanced LLM methods"""
         try:
             resume_text = self._extract_text_content(resume)
             job_requirements = job.get('requirements', [])
+            job_text = self._extract_job_content(job)
             
-            # Extract education from resume
-            resume_education = self._extract_education(resume_text)
+            # Extract education using enhanced method (LLM + rule-based)
+            resume_education = await self._extract_education_enhanced(resume_text, "resume")
             
-            # Extract education requirements from job
-            job_education = self._extract_education_requirements(job_requirements)
+            # Extract education requirements using enhanced method
+            job_education = await self._extract_education_requirements_enhanced(job_text, job_requirements)
             
             # Calculate education score
             score, confidence = self._calculate_education_score(resume_education, job_education)
@@ -281,3 +312,184 @@ class EducationAlignmentAgent(BaseAgent):
             return "partial"
         else:
             return "unrelated"
+
+    async def _extract_education_enhanced(self, text: str, source_type: str) -> Dict[str, Any]:
+        """Extract education using LLM + rule-based approach"""
+        # Start with rule-based extraction as fallback
+        rule_based_education = self._extract_education(text)
+        
+        # If LLM is available, enhance with LLM analysis
+        if self.use_llm and self.llm_service:
+            try:
+                llm_education = await self._extract_education_with_llm(text, source_type)
+                # Combine rule-based and LLM results, prioritizing LLM when available
+                enhanced_education = self._combine_education_results(rule_based_education, llm_education)
+                return enhanced_education
+            except Exception as e:
+                print(f"⚠️ LLM education extraction failed, using rule-based: {e}")
+                return rule_based_education
+        
+        return rule_based_education
+
+    async def _extract_education_requirements_enhanced(self, job_text: str, requirements: List[str]) -> Dict[str, Any]:
+        """Extract education requirements using LLM + rule-based approach"""
+        # Start with rule-based extraction as fallback
+        rule_based_education = self._extract_education_requirements(requirements)
+        
+        # If LLM is available, enhance with LLM analysis
+        if self.use_llm and self.llm_service:
+            try:
+                full_text = f"{job_text}\n\nRequirements: {' '.join(requirements)}"
+                llm_education = await self._extract_education_with_llm(full_text, "job_requirements")
+                # Combine rule-based and LLM results
+                enhanced_education = self._combine_education_results(rule_based_education, llm_education)
+                return enhanced_education
+            except Exception as e:
+                print(f"⚠️ LLM education requirements extraction failed, using rule-based: {e}")
+                return rule_based_education
+        
+        return rule_based_education
+
+    async def _extract_education_with_llm(self, text: str, source_type: str) -> Dict[str, Any]:
+        """Extract education information using LLM"""
+        prompt = f"""Analyze the following {source_type} text and extract education information.
+
+Text: {text}
+
+Please extract and return ONLY a valid JSON object with the following structure:
+{{
+    "degree_level": "one of: phd, masters, bachelors, associate, high_school, or null",
+    "level": "numeric value: 4=phd, 3=masters, 2=bachelors, 1=associate, 0=high_school",
+    "field": "main field of study (e.g., computer_science, engineering, business)",
+    "specific_degree": "specific degree name if mentioned (e.g., Bachelor of Science in Computer Science)",
+    "institutions": ["list of educational institutions mentioned"],
+    "certifications": ["relevant certifications or professional qualifications"],
+    "confidence": "float between 0.0-1.0 indicating extraction confidence"
+}}
+
+Focus on:
+- Highest degree level mentioned
+- Primary field of study
+- Professional certifications
+- Educational institutions
+- Requirements vs achievements (based on source_type)
+
+Return only the JSON, no additional text."""
+
+        try:
+            response = await self.llm_service.generate_completion(prompt, temperature=0.1, max_tokens=800)
+            
+            # Validate response is not empty
+            if not response or not response.strip():
+                print("⚠️ LLM returned empty response for education extraction")
+                return {}
+            
+            # Clean the response - remove any markdown formatting
+            cleaned_response = response.strip()
+            if cleaned_response.startswith('```json'):
+                cleaned_response = cleaned_response[7:]
+            if cleaned_response.startswith('```'):
+                cleaned_response = cleaned_response[3:]
+            if cleaned_response.endswith('```'):
+                cleaned_response = cleaned_response[:-3]
+            cleaned_response = cleaned_response.strip()
+            
+            # Try to find JSON in the response
+            json_start = cleaned_response.find('{')
+            json_end = cleaned_response.rfind('}') + 1
+            
+            if json_start != -1 and json_end > json_start:
+                json_content = cleaned_response[json_start:json_end]
+                education_data = json.loads(json_content)
+            else:
+                # If no JSON found, try parsing the whole response
+                education_data = json.loads(cleaned_response)
+            
+            # Validate and normalize the response
+            return self._validate_llm_education_response(education_data)
+            
+        except json.JSONDecodeError as e:
+            print(f"⚠️ Failed to parse LLM education response as JSON: {e}")
+            print(f"Raw response: {response[:200]}...")  # Log first 200 chars for debugging
+            return {}
+        except Exception as e:
+            error_str = str(e).lower()
+            if "llm_quota_exceeded" in error_str or "quota exceeded" in error_str:
+                print("⚠️ LLM quota exceeded for education extraction. Using rule-based fallback.")
+                return {}  # Return empty dict to use rule-based only
+            print(f"⚠️ LLM education extraction error: {e}")
+            return {}
+
+    def _combine_education_results(self, rule_based: Dict[str, Any], llm_based: Dict[str, Any]) -> Dict[str, Any]:
+        """Combine rule-based and LLM-based education extraction results"""
+        combined = rule_based.copy()
+        
+        # LLM results take priority if they exist and have confidence
+        if llm_based and llm_based.get('confidence', 0) > 0.3:
+            # Use LLM degree level if more specific or higher confidence
+            if llm_based.get('degree_level') and llm_based.get('confidence', 0) > 0.5:
+                combined['degree_level'] = llm_based['degree_level']
+                combined['level'] = llm_based.get('level', self.degree_levels.get(llm_based['degree_level'], 0))
+            
+            # Use LLM field if available and confident
+            if llm_based.get('field') and llm_based.get('confidence', 0) > 0.4:
+                combined['field'] = llm_based['field']
+            
+            # Add LLM-specific information
+            if llm_based.get('specific_degree'):
+                combined['specific_degree'] = llm_based['specific_degree']
+            
+            if llm_based.get('institutions'):
+                combined['institutions'] = llm_based['institutions']
+            
+            if llm_based.get('certifications'):
+                combined['certifications'] = llm_based['certifications']
+            
+            # Set extraction method
+            combined['extraction_method'] = 'llm_enhanced'
+            combined['llm_confidence'] = llm_based.get('confidence', 0)
+        else:
+            combined['extraction_method'] = 'rule_based'
+        
+        return combined
+
+    def _validate_llm_education_response(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate and normalize LLM education response"""
+        validated = {}
+        
+        # Validate degree level
+        if data.get('degree_level') in self.degree_levels:
+            validated['degree_level'] = data['degree_level']
+            validated['level'] = self.degree_levels[data['degree_level']]
+        elif data.get('level') is not None:
+            # Try to map numeric level back to degree level
+            level_mapping = {v: k for k, v in self.degree_levels.items()}
+            if data['level'] in level_mapping:
+                validated['degree_level'] = level_mapping[data['level']]
+                validated['level'] = data['level']
+        
+        # Validate field
+        if data.get('field') and isinstance(data['field'], str):
+            validated['field'] = data['field'].lower().replace(' ', '_')
+        
+        # Additional information
+        for key in ['specific_degree', 'institutions', 'certifications', 'confidence']:
+            if data.get(key) is not None:
+                validated[key] = data[key]
+        
+        return validated
+
+    def _extract_job_content(self, job: Dict[str, Any]) -> str:
+        """Extract full job content for LLM analysis"""
+        content_parts = []
+        
+        if job.get('title'):
+            content_parts.append(f"Title: {job['title']}")
+        if job.get('description'):
+            content_parts.append(f"Description: {job['description']}")
+        if job.get('requirements'):
+            content_parts.append(f"Requirements: {' '.join(job['requirements'])}")
+        if job.get('experience_level'):
+            content_parts.append(f"Experience Level: {job['experience_level']}")
+        
+        return '\n'.join(content_parts)

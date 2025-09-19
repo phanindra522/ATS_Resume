@@ -1,0 +1,47 @@
+Senior Data Scientist - Machine Learning
+
+Company: DataVision Analytics
+Location: New York, NY (Remote)
+Salary Range: $130,000 - $180,000
+
+We are looking for an experienced Senior Data Scientist to lead our machine learning initiatives and drive data-driven decision making across the organization.
+
+Job Description:
+As a Senior Data Scientist, you will be responsible for developing and implementing machine learning models, analyzing large datasets, and providing actionable insights to stakeholders. You will work closely with engineering teams to deploy models into production and collaborate with business teams to understand requirements.
+
+Requirements:
+- Master's degree in Data Science, Statistics, Computer Science, or related field
+- 5+ years of experience in data science and machine learning
+- Strong background in statistical analysis and predictive modeling
+- Experience with Python, R, and SQL
+- Knowledge of machine learning frameworks (scikit-learn, TensorFlow, PyTorch)
+- Experience with big data technologies (Spark, Hadoop)
+- Understanding of cloud platforms (AWS, Azure, or GCP)
+- Strong communication and presentation skills
+
+Skills:
+- Python
+- R
+- SQL
+- Machine Learning
+- Deep Learning
+- TensorFlow
+- PyTorch
+- scikit-learn
+- Apache Spark
+- AWS
+- Statistical Analysis
+- Data Visualization
+- Tableau
+- Power BI
+
+Responsibilities:
+- Develop and implement machine learning models for various business problems
+- Analyze large datasets to identify patterns and trends
+- Collaborate with engineering teams to deploy models into production
+- Create data visualizations and reports for stakeholders
+- Mentor junior data scientists and analysts
+- Stay current with latest developments in machine learning and AI
+- Present findings and recommendations to executive leadership
+
+This is an excellent opportunity for a data scientist who wants to make a significant impact in a fast-growing company.

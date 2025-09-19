@@ -1,0 +1,66 @@
+Dr. Amanda Foster
+Senior Data Scientist - Machine Learning
+Email: amanda.foster@email.com | Phone: (555) 890-1234
+Location: New York, NY | LinkedIn: linkedin.com/in/amandafoster
+
+PROFESSIONAL SUMMARY
+Experienced Senior Data Scientist with 6+ years of expertise in machine learning, statistical analysis, and big data technologies. Proven track record of developing and deploying ML models that drive business value. Strong background in Python, R, and cloud platforms.
+
+TECHNICAL SKILLS
+• Programming Languages: Python, R, SQL, Scala
+• Machine Learning: scikit-learn, TensorFlow, PyTorch, XGBoost
+• Data Analysis: pandas, NumPy, SciPy, matplotlib, seaborn
+• Big Data: Apache Spark, Hadoop, Kafka
+• Cloud Platforms: AWS (SageMaker, EMR, S3), Azure ML, GCP
+• Databases: PostgreSQL, MongoDB, Redis
+• Visualization: Tableau, Power BI, D3.js, Plotly
+• Other: Git, Docker, Jupyter, MLflow
+
+PROFESSIONAL EXPERIENCE
+
+Senior Data Scientist | DataVision Analytics | 2021 - Present
+• Developed and deployed machine learning models for predictive analytics
+• Led team of 3 data scientists in implementing ML solutions
+• Built end-to-end ML pipelines using Python and Apache Spark
+• Analyzed large datasets (100M+ records) to identify business insights
+• Collaborated with engineering teams to deploy models into production
+• Presented findings to C-level executives and stakeholders
+
+Data Scientist | TechCorp | 2019 - 2021
+• Built recommendation systems using collaborative filtering and deep learning
+• Conducted A/B testing and statistical analysis for product optimization
+• Developed time series forecasting models for demand prediction
+• Created interactive dashboards using Tableau and Power BI
+• Mentored junior data scientists and analysts
+
+Research Scientist | University Research Lab | 2017 - 2019
+• Conducted research in machine learning and computer vision
+• Published 5 peer-reviewed papers in top-tier conferences
+• Developed novel algorithms for image classification
+• Collaborated with industry partners on applied research projects
+
+EDUCATION
+Ph.D. in Machine Learning
+Stanford University | 2013 - 2017
+Dissertation: "Deep Learning Approaches for Computer Vision"
+
+Master of Science in Statistics
+Stanford University | 2011 - 2013
+Bachelor of Science in Mathematics
+University of California, Berkeley | 2007 - 2011
+GPA: 3.9/4.0
+
+CERTIFICATIONS
+• AWS Certified Machine Learning Specialty
+• Google Cloud Professional Data Engineer
+• Certified Analytics Professional (CAP)
+
+PUBLICATIONS
+• "Deep Learning for Image Classification" - ICML 2018
+• "Time Series Forecasting with Neural Networks" - NeurIPS 2017
+• "Recommendation Systems: A Survey" - IEEE TKDE 2016
+
+PROJECTS
+• Customer Churn Prediction: Built ML model with 95% accuracy
+• Real-time Fraud Detection: Developed streaming ML pipeline
+• Natural Language Processing: Created sentiment analysis system

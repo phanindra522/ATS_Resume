@@ -1,0 +1,56 @@
+Daniel Kim
+Product Manager
+Email: daniel.kim@email.com | Phone: (555) 678-9012
+Location: Austin, TX | Portfolio: danielkimproduct.com
+
+PROFESSIONAL SUMMARY
+Product Manager with 4 years of experience in digital product development, user experience, and agile methodologies. Strong background in product strategy, user research, and cross-functional collaboration.
+
+TECHNICAL SKILLS
+• Product Management: Product Strategy, Roadmap Planning, Feature Definition
+• Agile/Scrum: Sprint Planning, User Stories, Backlog Grooming
+• Analytics: Google Analytics, Mixpanel, A/B Testing
+• User Research: User Interviews, Surveys, Usability Testing
+• Tools: Jira, Confluence, Figma, Slack
+• Data Analysis: Excel, SQL (basic)
+• Other: API Documentation, Technical Writing
+
+PROFESSIONAL EXPERIENCE
+
+Product Manager | StartupXYZ | 2020 - Present
+• Managed product roadmap and feature prioritization for web platform
+• Led user research initiatives and conducted customer interviews
+• Worked with engineering and design teams in agile environment
+• Analyzed product metrics and user feedback to drive improvements
+• Coordinated product launches and marketing campaigns
+• Collaborated with stakeholders to define product requirements
+
+Associate Product Manager | TechCorp | 2018 - 2020
+• Supported product development for mobile and web applications
+• Created user stories and acceptance criteria for development teams
+• Conducted competitive analysis and market research
+• Assisted in A/B testing and product optimization
+• Worked with cross-functional teams on feature delivery
+• Gained experience with product analytics and user research
+
+Business Analyst | Consulting Firm | 2017 - 2018
+• Analyzed business requirements and created functional specifications
+• Worked with clients to understand business needs
+• Created process documentation and user guides
+• Gained experience with project management and stakeholder communication
+
+EDUCATION
+Bachelor of Science in Business Administration
+University of Texas at Austin | 2013 - 2017
+Concentration: Information Systems
+GPA: 3.6/4.0
+
+CERTIFICATIONS
+• Certified Scrum Product Owner (CSPO)
+• Google Analytics Certified
+• Product Management Certificate - Coursera
+
+PROJECTS
+• E-commerce Platform: Led product development for online marketplace
+• Mobile App Launch: Managed product launch for iOS and Android app
+• User Research Study: Conducted comprehensive user experience research

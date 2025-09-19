@@ -1,0 +1,55 @@
+Robert Kim
+Backend Software Engineer
+Email: robert.kim@email.com | Phone: (555) 678-9012
+Location: Seattle, WA | GitHub: github.com/robertkim
+
+PROFESSIONAL SUMMARY
+Experienced Backend Software Engineer with 6 years of expertise in server-side development, database design, and API development. Strong background in Python, Java, and cloud technologies.
+
+TECHNICAL SKILLS
+• Programming Languages: Python, Java, C++, SQL
+• Backend: Django, Flask, Spring Boot, RESTful APIs
+• Databases: PostgreSQL, MySQL, Redis, MongoDB
+• Cloud: AWS, Azure, Docker, Kubernetes
+• DevOps: Jenkins, Git, Linux
+• Testing: pytest, JUnit, Postman
+• Other: Microservices, API Design, System Architecture
+
+PROFESSIONAL EXPERIENCE
+
+Senior Backend Engineer | CloudTech Solutions | 2020 - Present
+• Designed and developed scalable backend systems using Python and Django
+• Built RESTful APIs serving millions of requests daily
+• Implemented microservices architecture with Docker and Kubernetes
+• Optimized database queries and improved system performance by 50%
+• Led technical architecture decisions and mentored junior developers
+
+Backend Developer | DataCorp | 2018 - 2020
+• Developed backend services using Java and Spring Boot
+• Designed database schemas and optimized query performance
+• Built APIs for mobile and web applications
+• Implemented authentication and authorization systems
+• Collaborated with frontend teams on API integration
+
+Software Engineer | TechStart | 2017 - 2018
+• Developed server-side applications using Python
+• Worked with PostgreSQL and Redis databases
+• Built RESTful APIs and web services
+• Gained experience with cloud deployment
+
+EDUCATION
+Master of Science in Computer Science
+University of Washington | 2015 - 2017
+Bachelor of Science in Computer Science
+University of Washington | 2011 - 2015
+GPA: 3.9/4.0
+
+CERTIFICATIONS
+• AWS Certified Solutions Architect
+• Oracle Certified Java Developer
+• Certified Kubernetes Administrator
+
+PROJECTS
+• High-Performance API Gateway: Built with Python and Redis
+• Real-time Data Processing System: Developed with Java and Kafka
+• Microservices Architecture: Designed scalable backend system

@@ -1,0 +1,59 @@
+Dr. James Wilson
+Research Scientist
+Email: james.wilson@email.com | Phone: (555) 345-6789
+Location: Boston, MA | ResearchGate: researchgate.net/profile/jameswilson
+
+PROFESSIONAL SUMMARY
+Research Scientist with 8 years of experience in academic research, statistical analysis, and scientific computing. Strong background in R, Python, and advanced statistical methods. Looking to transition into industry data science.
+
+TECHNICAL SKILLS
+• Programming Languages: R, Python, MATLAB, SAS
+• Statistical Analysis: Advanced Statistics, Bayesian Methods, Time Series
+• Research: Experimental Design, Hypothesis Testing, Meta-Analysis
+• Visualization: ggplot2, matplotlib, Tableau
+• Databases: SQL, PostgreSQL
+• Other: LaTeX, Git, Jupyter
+• Software: SPSS, Stata, Minitab
+
+PROFESSIONAL EXPERIENCE
+
+Research Scientist | Harvard Medical School | 2019 - Present
+• Conducted statistical analysis for medical research studies
+• Developed novel statistical methods for clinical trials
+• Published 12 peer-reviewed papers in top medical journals
+• Collaborated with interdisciplinary research teams
+• Mentored graduate students and postdocs
+
+Postdoctoral Researcher | MIT | 2017 - 2019
+• Performed advanced statistical analysis for engineering research
+• Developed machine learning models for predictive analytics
+• Used Python and R for data analysis and visualization
+• Collaborated with industry partners on applied research
+• Published 8 research papers in scientific journals
+
+Research Assistant | Stanford University | 2015 - 2017
+• Assisted in statistical analysis for psychology research
+• Used R and SPSS for data analysis and visualization
+• Gained experience with experimental design and hypothesis testing
+• Contributed to multiple research publications
+
+EDUCATION
+Ph.D. in Statistics
+Stanford University | 2011 - 2015
+Dissertation: "Bayesian Methods for Clinical Trial Analysis"
+
+Master of Science in Applied Statistics
+University of California, Berkeley | 2009 - 2011
+Bachelor of Science in Mathematics
+University of California, Berkeley | 2005 - 2009
+GPA: 3.8/4.0
+
+PUBLICATIONS
+• "Bayesian Analysis in Clinical Trials" - Journal of the American Statistical Association
+• "Machine Learning for Medical Diagnosis" - Nature Medicine
+• "Statistical Methods for Big Data" - Journal of Computational Statistics
+
+CERTIFICATIONS
+• Certified Statistical Analyst (CSA)
+• R Programming Certification
+• Python for Data Science Certificate

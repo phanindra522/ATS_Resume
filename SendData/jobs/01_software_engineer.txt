@@ -1,0 +1,46 @@
+Software Engineer - Full Stack Development
+
+Company: TechCorp Solutions
+Location: San Francisco, CA (Hybrid)
+Salary Range: $120,000 - $160,000
+
+We are seeking a talented Full Stack Software Engineer to join our dynamic development team. As a Software Engineer, you will be responsible for designing, developing, and maintaining web applications using modern technologies.
+
+Job Description:
+You will work on both frontend and backend development, collaborating with cross-functional teams to deliver high-quality software solutions. This role involves working with cutting-edge technologies and contributing to the architecture of scalable applications.
+
+Requirements:
+- Bachelor's degree in Computer Science, Engineering, or related field
+- 3-5 years of experience in full-stack development
+- Strong proficiency in JavaScript, TypeScript, and React
+- Experience with Node.js, Express, and RESTful APIs
+- Knowledge of database systems (PostgreSQL, MongoDB)
+- Familiarity with cloud platforms (AWS, Azure, or GCP)
+- Understanding of version control systems (Git)
+- Experience with testing frameworks (Jest, Cypress)
+
+Skills:
+- JavaScript
+- TypeScript
+- React
+- Node.js
+- Express.js
+- PostgreSQL
+- MongoDB
+- AWS
+- Git
+- Jest
+- Problem-solving
+- Team collaboration
+- Agile development
+
+Responsibilities:
+- Develop and maintain web applications using modern frameworks
+- Collaborate with product managers and designers to define requirements
+- Write clean, maintainable, and efficient code
+- Participate in code reviews and technical discussions
+- Debug and troubleshoot application issues
+- Implement automated testing and CI/CD pipelines
+- Stay updated with latest industry trends and technologies
+
+If you are passionate about software development and want to work in a collaborative environment, we encourage you to apply for this exciting opportunity.

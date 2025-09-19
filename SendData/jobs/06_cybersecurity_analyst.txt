@@ -1,0 +1,47 @@
+Cybersecurity Analyst - Security Operations
+
+Company: SecureGuard Solutions
+Location: Washington, DC (On-site)
+Salary Range: $95,000 - $130,000
+
+We are looking for a dedicated Cybersecurity Analyst to join our security operations center and help protect our organization from cyber threats.
+
+Job Description:
+As a Cybersecurity Analyst, you will be responsible for monitoring security systems, investigating security incidents, and implementing security measures to protect our infrastructure and data. You will work in a fast-paced environment responding to security threats and vulnerabilities.
+
+Requirements:
+- Bachelor's degree in Cybersecurity, Computer Science, or related field
+- 2-4 years of cybersecurity experience
+- Knowledge of security frameworks and standards
+- Experience with SIEM tools and security monitoring
+- Understanding of network security and firewalls
+- Familiarity with incident response procedures
+- Security certifications preferred (CISSP, CEH, Security+)
+- Strong analytical and problem-solving skills
+
+Skills:
+- SIEM Tools
+- Network Security
+- Incident Response
+- Vulnerability Assessment
+- Penetration Testing
+- Firewall Management
+- Security Monitoring
+- Threat Analysis
+- Risk Assessment
+- Security Policies
+- Compliance
+- Forensics
+- Malware Analysis
+
+Responsibilities:
+- Monitor security systems and networks for threats
+- Investigate and respond to security incidents
+- Conduct vulnerability assessments and penetration tests
+- Implement and maintain security controls
+- Develop and update security policies and procedures
+- Collaborate with IT teams on security implementations
+- Provide security awareness training to staff
+- Stay updated with latest cybersecurity threats and trends
+
+Help us maintain the highest level of security in an ever-evolving threat landscape.

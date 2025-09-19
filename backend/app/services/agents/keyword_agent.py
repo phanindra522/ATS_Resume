@@ -24,6 +24,16 @@ class KeywordMatchingAgent(BaseAgent):
         self.use_llm = getattr(settings, 'USE_LLM_FOR_KEYWORDS', True)
         self._initialize_llm_service()
     
+    def get_meta_prompt(self):
+        """Chain-of-thought meta prompt for keyword extraction"""
+        return (
+            "Think step by step about what makes a good prompt for keyword extraction:\n"
+            "1. What types of keywords should be captured (technical, business, soft skills)?\n"
+            "2. What edge cases (synonyms, abbreviations, irrelevant words) should be handled?\n"
+            "3. What output format is most useful?\n"
+            "Now create a detailed prompt for extracting keywords from a resume or job description."
+        )
+
     def _initialize_llm_service(self):
         """Initialize LLM service if available"""
         try:
@@ -232,16 +242,41 @@ class KeywordMatchingAgent(BaseAgent):
                 return response
             return None
         except Exception as e:
-            print(f"Custom LLM call failed: {e}")
+            error_str = str(e).lower()
+            if "llm_quota_exceeded" in error_str or "quota exceeded" in error_str:
+                print("Custom LLM call failed: Quota exceeded. Using rule-based extraction.")
+            else:
+                print(f"Custom LLM call failed: {e}")
             return None
     
     def _parse_keyword_response(self, response: str) -> Optional[Dict[str, float]]:
         """Parse LLM response for keywords"""
-        if not response:
+        if not response or not response.strip():
+            print("⚠️ LLM returned empty response for keyword extraction")
             return None
             
         try:
-            data = json.loads(response)
+            # Clean the response - remove any markdown formatting
+            cleaned_response = response.strip()
+            if cleaned_response.startswith('```json'):
+                cleaned_response = cleaned_response[7:]
+            if cleaned_response.startswith('```'):
+                cleaned_response = cleaned_response[3:]
+            if cleaned_response.endswith('```'):
+                cleaned_response = cleaned_response[:-3]
+            cleaned_response = cleaned_response.strip()
+            
+            # Try to find JSON in the response
+            json_start = cleaned_response.find('{')
+            json_end = cleaned_response.rfind('}') + 1
+            
+            if json_start != -1 and json_end > json_start:
+                json_content = cleaned_response[json_start:json_end]
+                data = json.loads(json_content)
+            else:
+                # If no JSON found, try parsing the whole response
+                data = json.loads(cleaned_response)
+            
             keywords = {}
             for item in data.get("keywords", []):
                 term = item.get("term", "").lower().strip()
@@ -249,6 +284,10 @@ class KeywordMatchingAgent(BaseAgent):
                 if term:
                     keywords[term] = importance
             return keywords
+        except json.JSONDecodeError as e:
+            print(f"⚠️ Failed to parse LLM keyword response as JSON: {e}")
+            print(f"Raw response: {response[:200]}...")  # Log first 200 chars for debugging
+            return None
         except Exception as e:
             print(f"Failed to parse keyword response: {e}")
             return None

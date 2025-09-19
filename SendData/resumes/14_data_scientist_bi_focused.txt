@@ -1,0 +1,55 @@
+Michelle Chen
+Business Intelligence Analyst
+Email: michelle.chen@email.com | Phone: (555) 456-7890
+Location: San Francisco, CA | LinkedIn: linkedin.com/in/michellechen
+
+PROFESSIONAL SUMMARY
+Business Intelligence Analyst with 5 years of experience in data warehousing, reporting, and business analytics. Strong background in SQL, data visualization, and business intelligence tools.
+
+TECHNICAL SKILLS
+• Databases: SQL, PostgreSQL, MySQL, Oracle, SQL Server
+• BI Tools: Tableau, Power BI, QlikView, Cognos
+• Data Warehousing: ETL, Data Modeling, Star Schema
+• Programming: Python (basic), R (basic)
+• Visualization: Tableau, Power BI, Excel
+• Other: Data Governance, KPI Development
+• Tools: Alteryx, Informatica, SSIS
+
+PROFESSIONAL EXPERIENCE
+
+Senior BI Analyst | Enterprise Solutions | 2020 - Present
+• Designed and developed business intelligence dashboards using Tableau
+• Built data models and ETL processes for data warehousing
+• Created executive reports and KPI dashboards
+• Collaborated with business stakeholders to define reporting requirements
+• Mentored junior analysts and led BI projects
+
+Business Intelligence Analyst | DataCorp | 2018 - 2020
+• Developed SQL queries and stored procedures for data analysis
+• Created interactive dashboards and reports using Power BI
+• Performed data quality analysis and validation
+• Worked with data engineers on ETL pipeline development
+• Supported business users with ad-hoc reporting requests
+
+Data Analyst | Financial Services | 2017 - 2018
+• Analyzed financial data and created regulatory reports
+• Used SQL and Excel for data analysis and reporting
+• Collaborated with compliance and risk management teams
+• Gained experience with financial data and reporting requirements
+
+EDUCATION
+Master of Science in Business Analytics
+University of California, Berkeley | 2015 - 2017
+Bachelor of Science in Information Systems
+San Francisco State University | 2011 - 2015
+GPA: 3.7/4.0
+
+CERTIFICATIONS
+• Tableau Desktop Certified Professional
+• Microsoft Certified: Data Analyst Associate
+• Certified Business Intelligence Professional (CBIP)
+
+PROJECTS
+• Executive Dashboard: Built comprehensive KPI dashboard using Tableau
+• Data Warehouse Design: Designed star schema for sales analytics
+• Automated Reporting: Created automated ETL processes for daily reports

@@ -1,0 +1,49 @@
+DevOps Engineer - Cloud Infrastructure
+
+Company: CloudScale Technologies
+Location: Austin, TX (Remote)
+Salary Range: $115,000 - $155,000
+
+We are looking for a skilled DevOps Engineer to join our infrastructure team and help scale our cloud-based systems and deployment pipelines.
+
+Job Description:
+As a DevOps Engineer, you will be responsible for designing, implementing, and maintaining our cloud infrastructure, CI/CD pipelines, and monitoring systems. You will work closely with development teams to ensure reliable and scalable deployments.
+
+Requirements:
+- Bachelor's degree in Computer Science, Engineering, or related field
+- 3-5 years of DevOps or infrastructure experience
+- Strong experience with cloud platforms (AWS, Azure, or GCP)
+- Proficiency in infrastructure as code (Terraform, CloudFormation)
+- Experience with containerization (Docker, Kubernetes)
+- Knowledge of CI/CD tools (Jenkins, GitLab CI, GitHub Actions)
+- Understanding of monitoring and logging tools
+- Scripting skills (Python, Bash, PowerShell)
+
+Skills:
+- AWS
+- Azure
+- Docker
+- Kubernetes
+- Terraform
+- Jenkins
+- GitLab CI
+- Python
+- Bash
+- Linux
+- Monitoring
+- Logging
+- Infrastructure as Code
+- CI/CD
+- Security
+
+Responsibilities:
+- Design and implement cloud infrastructure solutions
+- Automate deployment and scaling processes
+- Maintain and improve CI/CD pipelines
+- Monitor system performance and troubleshoot issues
+- Implement security best practices
+- Collaborate with development teams on deployment strategies
+- Document infrastructure and deployment processes
+- Stay updated with latest DevOps tools and practices
+
+This role offers the opportunity to work with cutting-edge cloud technologies and make a significant impact on our infrastructure.

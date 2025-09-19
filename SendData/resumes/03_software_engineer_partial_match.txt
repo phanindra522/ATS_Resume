@@ -1,0 +1,50 @@
+Michael Chen
+Frontend Developer
+Email: michael.chen@email.com | Phone: (555) 345-6789
+Location: Los Angeles, CA | Portfolio: michaelchen.dev
+
+PROFESSIONAL SUMMARY
+Creative Frontend Developer with 3 years of experience specializing in user interface development. Strong focus on creating engaging and accessible web experiences using modern frontend technologies.
+
+TECHNICAL SKILLS
+• Programming Languages: JavaScript, HTML5, CSS3
+• Frontend: React, Vue.js, Angular (basic)
+• Styling: CSS3, Sass, Bootstrap, Tailwind CSS
+• Tools: Git, Webpack, npm
+• Design: Figma, Adobe Creative Suite
+• Testing: Jest (basic)
+• Other: Responsive Design, Accessibility
+
+PROFESSIONAL EXPERIENCE
+
+Frontend Developer | Creative Agency | 2021 - Present
+• Developed responsive web applications using React
+• Created custom CSS animations and interactive components
+• Collaborated with designers to implement pixel-perfect designs
+• Optimized websites for performance and accessibility
+• Worked with clients to understand requirements
+
+UI Developer | Design Studio | 2019 - 2021
+• Built user interfaces using HTML, CSS, and JavaScript
+• Implemented designs from Figma mockups
+• Created responsive layouts for various devices
+• Worked with WordPress and content management systems
+
+Junior Frontend Developer | Web Solutions | 2018 - 2019
+• Assisted in developing website layouts
+• Learned modern CSS techniques and JavaScript
+• Worked with senior developers on client projects
+• Gained experience with version control
+
+EDUCATION
+Bachelor of Arts in Digital Media
+University of California, Los Angeles | 2014 - 2018
+
+PROJECTS
+• Portfolio Website: Built with React and custom CSS
+• E-commerce Landing Page: Created responsive design
+• Interactive Dashboard: Developed with React and charts
+
+CERTIFICATIONS
+• Google UX Design Certificate
+• Frontend Web Development Certificate

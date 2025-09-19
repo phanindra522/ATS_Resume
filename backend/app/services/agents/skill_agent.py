@@ -26,6 +26,16 @@ class SkillMatchingAgent(BaseAgent):
         self.use_llm = getattr(settings, 'USE_LLM_FOR_SKILLS', True)
         self._initialize_llm_service()
     
+    def get_meta_prompt(self):
+        """Chain-of-thought meta prompt for skill extraction and normalization"""
+        return (
+            "Think step by step about what makes a good prompt for skill extraction and normalization:\n"
+            "1. What information should it capture (skills, synonyms, related groups)?\n"
+            "2. What edge cases (misspellings, abbreviations, overlapping skills) should it handle?\n"
+            "3. What output format is most useful?\n"
+            "Now create a detailed prompt for extracting and normalizing skills from a resume or job description."
+        )
+
     def _initialize_llm_service(self):
         """Initialize LLM service if available"""
         try:
@@ -378,22 +388,51 @@ class SkillMatchingAgent(BaseAgent):
                 return response
             return None
         except Exception as e:
-            print(f"Custom LLM call failed: {e}")
+            error_str = str(e).lower()
+            if "llm_quota_exceeded" in error_str or "quota exceeded" in error_str:
+                print("Custom LLM call failed: Quota exceeded. Using rule-based extraction.")
+            else:
+                print(f"Custom LLM call failed: {e}")
             return None
     
     def _parse_skill_response(self, response: str) -> Optional[List[str]]:
         """Parse LLM response for skills"""
-        if not response:
+        if not response or not response.strip():
+            print("⚠️ LLM returned empty response for skill extraction")
             return None
             
         try:
-            data = json.loads(response)
+            # Clean the response - remove any markdown formatting
+            cleaned_response = response.strip()
+            if cleaned_response.startswith('```json'):
+                cleaned_response = cleaned_response[7:]
+            if cleaned_response.startswith('```'):
+                cleaned_response = cleaned_response[3:]
+            if cleaned_response.endswith('```'):
+                cleaned_response = cleaned_response[:-3]
+            cleaned_response = cleaned_response.strip()
+            
+            # Try to find JSON in the response
+            json_start = cleaned_response.find('{')
+            json_end = cleaned_response.rfind('}') + 1
+            
+            if json_start != -1 and json_end > json_start:
+                json_content = cleaned_response[json_start:json_end]
+                data = json.loads(json_content)
+            else:
+                # If no JSON found, try parsing the whole response
+                data = json.loads(cleaned_response)
+            
             skills = []
             for item in data.get("skills", []):
                 skill = item.get("skill", "").strip()
                 if skill:
                     skills.append(skill.lower())
             return skills
+        except json.JSONDecodeError as e:
+            print(f"⚠️ Failed to parse LLM skill response as JSON: {e}")
+            print(f"Raw response: {response[:200]}...")  # Log first 200 chars for debugging
+            return None
         except Exception as e:
             print(f"Failed to parse skill response: {e}")
             return None
@@ -455,17 +494,42 @@ class SkillMatchingAgent(BaseAgent):
     
     def _parse_normalization_response(self, response: str) -> Optional[List[str]]:
         """Parse LLM response for normalized skills"""
-        if not response:
+        if not response or not response.strip():
+            print("⚠️ LLM returned empty response for skill normalization")
             return None
             
         try:
-            data = json.loads(response)
+            # Clean the response - remove any markdown formatting
+            cleaned_response = response.strip()
+            if cleaned_response.startswith('```json'):
+                cleaned_response = cleaned_response[7:]
+            if cleaned_response.startswith('```'):
+                cleaned_response = cleaned_response[3:]
+            if cleaned_response.endswith('```'):
+                cleaned_response = cleaned_response[:-3]
+            cleaned_response = cleaned_response.strip()
+            
+            # Try to find JSON in the response
+            json_start = cleaned_response.find('{')
+            json_end = cleaned_response.rfind('}') + 1
+            
+            if json_start != -1 and json_end > json_start:
+                json_content = cleaned_response[json_start:json_end]
+                data = json.loads(json_content)
+            else:
+                # If no JSON found, try parsing the whole response
+                data = json.loads(cleaned_response)
+            
             normalized_skills = []
             for item in data.get("normalized_skills", []):
                 normalized = item.get("normalized", "").strip()
                 if normalized:
                     normalized_skills.append(normalized.lower())
             return normalized_skills
+        except json.JSONDecodeError as e:
+            print(f"⚠️ Failed to parse LLM normalization response as JSON: {e}")
+            print(f"Raw response: {response[:200]}...")  # Log first 200 chars for debugging
+            return None
         except Exception as e:
             print(f"Failed to parse normalization response: {e}")
             return None

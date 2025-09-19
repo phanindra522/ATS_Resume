@@ -1,0 +1,54 @@
+Jennifer Lee
+Mobile App Developer
+Email: jennifer.lee@email.com | Phone: (555) 789-0123
+Location: Austin, TX | Portfolio: jenniferlee.dev
+
+PROFESSIONAL SUMMARY
+Mobile App Developer with 4 years of experience in iOS and Android development. Strong background in React Native, Swift, and mobile UI/UX design. Passionate about creating engaging mobile experiences.
+
+TECHNICAL SKILLS
+• Mobile Development: React Native, Swift, Kotlin, Flutter
+• Programming Languages: JavaScript, TypeScript, Swift, Kotlin
+• Frontend: React, Redux, HTML5, CSS3
+• Backend: Node.js (basic), RESTful APIs
+• Databases: SQLite, Firebase
+• Tools: Xcode, Android Studio, Git
+• Testing: Jest, Detox
+• Other: Mobile UI/UX, App Store Deployment
+
+PROFESSIONAL EXPERIENCE
+
+Senior Mobile Developer | AppTech Solutions | 2021 - Present
+• Developed cross-platform mobile applications using React Native
+• Built native iOS apps using Swift and Xcode
+• Created responsive mobile interfaces and optimized app performance
+• Integrated third-party APIs and payment systems
+• Led mobile development team and mentored junior developers
+
+Mobile Developer | StartupMobile | 2019 - 2021
+• Developed mobile applications for iOS and Android platforms
+• Used React Native for cross-platform development
+• Implemented push notifications and offline functionality
+• Collaborated with design team on mobile UI/UX
+• Published apps to App Store and Google Play Store
+
+Junior Mobile Developer | Mobile Studio | 2018 - 2019
+• Assisted in developing mobile applications
+• Learned React Native and mobile development best practices
+• Worked with senior developers on various mobile projects
+• Gained experience with mobile testing and deployment
+
+EDUCATION
+Bachelor of Science in Computer Science
+University of Texas at Austin | 2014 - 2018
+GPA: 3.5/4.0
+
+CERTIFICATIONS
+• Apple Certified iOS Developer
+• Google Android Developer Certification
+• React Native Certification
+
+PROJECTS
+• Fitness Tracking App: Built with React Native and Firebase
+• E-commerce Mobile App: Developed for iOS and Android
+• Social Media App: Created with real-time messaging features

@@ -1,0 +1,52 @@
+Sarah Johnson
+Full Stack Developer
+Email: sarah.johnson@email.com | Phone: (555) 234-5678
+Location: San Jose, CA | GitHub: github.com/sarahjohnson
+
+PROFESSIONAL SUMMARY
+Motivated Full Stack Developer with 4 years of experience in web development. Strong background in JavaScript, React, and backend technologies. Passionate about creating efficient and user-friendly applications.
+
+TECHNICAL SKILLS
+• Programming Languages: JavaScript, TypeScript, Python
+• Frontend: React, HTML5, CSS3, Bootstrap
+• Backend: Node.js, Express.js, RESTful APIs
+• Databases: MongoDB, MySQL
+• Cloud: AWS (basic), Heroku
+• Tools: Git, Docker, Postman
+• Testing: Jest, React Testing Library
+• Methodologies: Agile, Scrum
+
+PROFESSIONAL EXPERIENCE
+
+Full Stack Developer | Digital Solutions Inc. | 2020 - Present
+• Developed web applications using React and Node.js
+• Built RESTful APIs and integrated with MongoDB
+• Collaborated with cross-functional teams in agile environment
+• Implemented responsive designs and optimized performance
+• Participated in code reviews and technical discussions
+
+Frontend Developer | WebStudio | 2019 - 2020
+• Created interactive user interfaces using React
+• Worked with design team to implement UI/UX
+• Developed reusable components and maintained code quality
+• Used Git for version control and collaboration
+
+Junior Developer | TechStart | 2018 - 2019
+• Assisted in developing web applications
+• Learned React, JavaScript, and basic backend concepts
+• Worked with senior developers on various projects
+• Gained experience with agile development practices
+
+EDUCATION
+Bachelor of Science in Software Engineering
+San Jose State University | 2014 - 2018
+GPA: 3.6/4.0
+
+PROJECTS
+• Task Management App: Built with React and Node.js
+• Weather Dashboard: Created using React and external APIs
+• Blog Platform: Developed full-stack application with authentication
+
+CERTIFICATIONS
+• AWS Cloud Practitioner
+• React Developer Certification

@@ -1,0 +1,44 @@
+Kevin Park
+Marketing Coordinator
+Email: kevin.park@email.com | Phone: (555) 123-4567
+Location: Denver, CO
+
+PROFESSIONAL SUMMARY
+Marketing Coordinator with 2 years of experience in digital marketing and basic data analysis. Strong communication skills with growing interest in data science and analytics.
+
+TECHNICAL SKILLS
+• Marketing Tools: Google Analytics, Facebook Ads, HubSpot
+• Data Analysis: Excel, Google Sheets
+• Programming: Python (learning), SQL (basic)
+• Other: Social Media Marketing, Content Creation
+• Tools: Canva, Hootsuite, Mailchimp
+
+PROFESSIONAL EXPERIENCE
+
+Marketing Coordinator | Digital Marketing Agency | 2022 - Present
+• Managed social media campaigns and analyzed performance metrics
+• Created marketing reports using Google Analytics and Excel
+• Assisted in A/B testing for email campaigns
+• Collaborated with team on data-driven marketing strategies
+• Learning Python for data analysis
+
+Marketing Assistant | Local Business | 2021 - 2022
+• Created social media content and managed online presence
+• Analyzed basic marketing metrics and customer data
+• Assisted in email marketing campaigns
+• Gained experience with digital marketing tools
+
+EDUCATION
+Bachelor of Arts in Marketing
+University of Colorado | 2017 - 2021
+GPA: 3.3/4.0
+
+CERTIFICATIONS
+• Google Analytics Certified
+• HubSpot Content Marketing Certified
+• Facebook Blueprint Certified
+
+PROJECTS
+• Social Media Analytics Dashboard: Created using Excel
+• Email Campaign Analysis: Analyzed open rates and engagement
+• Customer Survey Analysis: Basic statistical analysis
