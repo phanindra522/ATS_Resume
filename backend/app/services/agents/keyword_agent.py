@@ -15,10 +15,10 @@ from app.core.config import settings
 
 
 class KeywordMatchingAgent(BaseAgent):
-    """Enhanced agent for keyword matching with LLM capabilities"""
+    """Enhanced agent for keyword matching with LLM capabilities and caching"""
     
-    def __init__(self, weight: float = 0.20):
-        super().__init__(AgentType.KEYWORD_MATCHING, weight)
+    def __init__(self, weight: float = 0.20, use_cache: bool = True):
+        super().__init__(AgentType.KEYWORD_MATCHING, weight, use_cache)
         self.technical_keywords = self._load_technical_keywords()
         self.llm_service = None
         self.use_llm = getattr(settings, 'USE_LLM_FOR_KEYWORDS', True)
@@ -87,7 +87,7 @@ class KeywordMatchingAgent(BaseAgent):
             'analytics', 'business intelligence', 'reporting', 'presentation'
         }
     
-    async def analyze(self, resume: Dict[str, Any], job: Dict[str, Any]) -> AgentResult:
+    async def _analyze_impl(self, resume: Dict[str, Any], job: Dict[str, Any]) -> AgentResult:
         """Analyze keyword overlap between resume and job using enhanced methods"""
         try:
             resume_text = self._extract_text_content(resume)

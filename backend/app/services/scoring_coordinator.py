@@ -6,6 +6,7 @@ resume scoring using a multi-agent architecture.
 """
 
 import asyncio
+import time
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime
@@ -58,7 +59,7 @@ class MultiAgentScoringCoordinator:
     
     async def score_resume(self, resume: Dict[str, Any], job: Dict[str, Any]) -> ScoringBreakdown:
         """
-        Score a resume against a job description using multi-agent system
+        Score a resume against a job description using cached multi-agent system
         
         Args:
             resume: Resume data dictionary
@@ -68,6 +69,13 @@ class MultiAgentScoringCoordinator:
             ScoringBreakdown with comprehensive scoring results
         """
         try:
+            # Check coordinator cache first
+            cached_result = await self._get_coordinator_cache(resume, job)
+            if cached_result is not None:
+                return cached_result
+            
+            start_time = time.time()
+            
             # Run all agents in parallel for efficiency
             agent_tasks = []
             for agent_type, agent in self.agents.items():
@@ -120,6 +128,8 @@ class MultiAgentScoringCoordinator:
                 missing_skills = evidence.get('missing_skills', [])
             
             # Create structured breakdown with rounded percentages
+            analysis_time = (time.time() - start_time) * 1000  # Convert to milliseconds
+            
             breakdown = ScoringBreakdown(
                 keyword_match=self._format_agent_result(agent_results.get(AgentType.KEYWORD_MATCHING.value)),
                 skills_alignment=self._format_agent_result(agent_results.get(AgentType.SKILL_MATCHING.value)),
@@ -134,6 +144,9 @@ class MultiAgentScoringCoordinator:
                 confidence=round(total_confidence, 2),
                 timestamp=datetime.utcnow()
             )
+            
+            # Cache the coordinator result
+            await self._set_coordinator_cache(resume, job, breakdown)
             
             return breakdown
             
@@ -191,6 +204,84 @@ class MultiAgentScoringCoordinator:
             formula_parts.append(f"({agent_type.value.replace('_', ' ').title()} × {agent.weight:.2f})")
         
         return " + ".join(formula_parts)
+
+    async def _get_coordinator_cache(self, resume: Dict[str, Any], job: Dict[str, Any]) -> Optional[ScoringBreakdown]:
+        """Get cached coordinator result"""
+        try:
+            from app.services.agent_cache import agent_cache_service
+            cached_data = await agent_cache_service.get_coordinator_result(resume, job)
+            
+            if cached_data is not None:
+                # Reconstruct ScoringBreakdown from cached data
+                return ScoringBreakdown(
+                    keyword_match=cached_data["keyword_match"],
+                    skills_alignment=cached_data["skills_alignment"],
+                    experience_relevance=cached_data["experience_relevance"],
+                    education_alignment=cached_data["education_alignment"],
+                    semantic_similarity=cached_data["semantic_similarity"],
+                    total_score=cached_data["total_score"],
+                    match_percentage=cached_data["match_percentage"],
+                    skills_match=cached_data["skills_match"],
+                    missing_skills=cached_data["missing_skills"],
+                    agent_results=cached_data.get("agent_results", {}),
+                    confidence=cached_data["confidence"],
+                    timestamp=datetime.fromisoformat(cached_data["timestamp"])
+                )
+            return None
+        except Exception as e:
+            print(f"Error getting coordinator cache: {e}")
+            return None
+
+    async def _set_coordinator_cache(self, resume: Dict[str, Any], job: Dict[str, Any], result: ScoringBreakdown) -> bool:
+        """Cache coordinator result"""
+        try:
+            from app.services.agent_cache import agent_cache_service
+            
+            # Convert ScoringBreakdown to cacheable format
+            cache_data = {
+                "keyword_match": result.keyword_match,
+                "skills_alignment": result.skills_alignment,
+                "experience_relevance": result.experience_relevance,
+                "education_alignment": result.education_alignment,
+                "semantic_similarity": result.semantic_similarity,
+                "total_score": result.total_score,
+                "match_percentage": result.match_percentage,
+                "skills_match": result.skills_match,
+                "missing_skills": result.missing_skills,
+                "agent_results": result.agent_results,
+                "confidence": result.confidence,
+                "timestamp": result.timestamp.isoformat(),
+                "cached_at": datetime.utcnow().isoformat()
+            }
+            
+            return await agent_cache_service.set_coordinator_result(resume, job, cache_data)
+        except Exception as e:
+            print(f"Error setting coordinator cache: {e}")
+            return False
+
+    async def get_cache_stats(self) -> Dict[str, Any]:
+        """Get cache statistics for all agents"""
+        try:
+            from app.services.agent_cache import agent_cache_service
+            return await agent_cache_service.get_cache_stats()
+        except Exception as e:
+            return {"error": str(e)}
+
+    async def clear_all_caches(self) -> Dict[str, Any]:
+        """Clear all agent caches"""
+        try:
+            from app.services.agent_cache import agent_cache_service
+            return await agent_cache_service.clear_agent_cache()
+        except Exception as e:
+            return {"error": str(e)}
+
+    async def warm_caches(self, resumes: List[Dict[str, Any]], jobs: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Warm up all agent caches"""
+        try:
+            from app.services.agent_cache import agent_cache_service
+            return await agent_cache_service.warm_agent_cache(resumes, jobs)
+        except Exception as e:
+            return {"error": str(e)}
 
 
 # Global coordinator instance

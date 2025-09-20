@@ -8,6 +8,7 @@ from app.database import get_database
 from app.models.job import JobCreate, JobResponse, JobUpdate, JobWithUserInfo, JobFileUpload
 from app.routers.auth import get_current_user
 from app.services.llm_service import parse_job_with_llm, LLMProvider
+from app.services.cached_llm_service import parse_job_with_cached_llm, get_cached_llm_service
 from app.core.config import settings
 from bson import ObjectId
 from datetime import datetime
@@ -16,30 +17,111 @@ router = APIRouter()
 
 @router.get("/llm-config")
 async def get_llm_config():
-    """Get LLM configuration status"""
+    """Get LLM configuration and cache status"""
+    cache_service = get_cached_llm_service()
+    cache_stats = cache_service.get_stats()
+    
     return {
         "config": settings.get_llm_config_info(),
-        "message": "LLM configuration status"
+        "cache": {
+            "enabled": settings.CACHE_ENABLED,
+            "redis_url": settings.REDIS_URL,
+            "ttl_seconds": settings.CACHE_LLM_TTL_SECONDS,
+            "stats": cache_stats
+        },
+        "message": "LLM configuration and cache status"
     }
+
+@router.post("/cache/clear")
+async def clear_llm_cache(current_user = Depends(get_current_user)):
+    """Clear LLM cache"""
+    try:
+        cache_service = get_cached_llm_service()
+        success = await cache_service.clear_cache()
+        return {
+            "success": success,
+            "message": "LLM cache cleared successfully" if success else "Failed to clear cache"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "Cache clear operation failed"
+        }
+
+@router.get("/cache/stats")
+async def get_cache_stats(current_user = Depends(get_current_user)):
+    """Get detailed cache statistics from all cache services"""
+    from app.services.advanced_cache import get_all_cache_stats
+    
+    # Get LLM cache stats
+    llm_cache_service = get_cached_llm_service()
+    llm_stats = llm_cache_service.get_stats()
+    
+    # Get advanced cache stats
+    advanced_stats = await get_all_cache_stats()
+    
+    return {
+        "llm_cache": llm_stats,
+        "advanced_cache": advanced_stats,
+        "cache_services": {
+            "llm_parsing": "✅ Active",
+            "embeddings": "✅ Active", 
+            "database_queries": "✅ Active",
+            "file_processing": "✅ Active",
+            "similarity_scores": "✅ Active"
+        },
+        "message": "Comprehensive cache statistics retrieved"
+    }
+
+@router.post("/cache/warm")
+async def warm_cache(current_user = Depends(get_current_user)):
+    """Warm up cache with user's data"""
+    from app.services.advanced_cache import warm_user_cache, warm_common_embeddings
+    from app.database import get_database
+    
+    try:
+        db = get_database()
+        
+        # Warm user-specific cache
+        await warm_user_cache(current_user["_id"], db)
+        
+        # Warm common embeddings
+        await warm_common_embeddings()
+        
+        return {
+            "success": True,
+            "message": "Cache warmed successfully for user and common data"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "Cache warmup failed"
+        }
 
 @router.post("/test-llm")
 async def test_llm_parsing(
     text: str,
     current_user = Depends(get_current_user)
 ):
-    """Test LLM parsing with sample text"""
+    """Test cached LLM parsing with sample text"""
     try:
-        result = await parse_job_with_llm(text)
+        result = await parse_job_with_cached_llm(text)
+        cache_service = get_cached_llm_service()
+        stats = cache_service.get_stats()
+        
         return {
             "success": True,
             "parsed_data": result,
-            "message": "LLM parsing successful"
+            "cache_stats": stats,
+            "message": "Cached LLM parsing successful"
         }
     except Exception as e:
         return {
             "success": False,
             "error": str(e),
-            "message": "LLM parsing failed"
+            "message": "Cached LLM parsing failed"
         }
 
 @router.post("/extract", response_model=JobFileUpload)
@@ -88,12 +170,12 @@ async def extract_job_from_file(
         # Clean up extracted text
         extracted_text = extracted_text.strip()
         
-        # Use LLM to parse job information intelligently
+        # Use cached LLM to parse job information intelligently
         try:
-            parsed_info = await parse_job_with_llm(extracted_text)
+            parsed_info = await parse_job_with_cached_llm(extracted_text)
         except Exception as e:
             # Fallback to rule-based parsing if LLM fails
-            print(f"LLM parsing failed, using fallback: {str(e)}")
+            print(f"Cached LLM parsing failed, using fallback: {str(e)}")
             parsed_info = parse_job_text(extracted_text)
         
         return JobFileUpload(
@@ -537,4 +619,109 @@ async def delete_job(job_id: str, current_user = Depends(get_current_user)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete job: {str(e)}"
+        )
+
+# ============================================================================
+# Multi-Agent Cache Management Endpoints
+# ============================================================================
+
+@router.get("/cache/agents/stats")
+async def get_agent_cache_stats(
+    current_user = Depends(get_current_user)
+):
+    """Get comprehensive multi-agent cache statistics"""
+    try:
+        from app.services.scoring_coordinator import coordinator
+        stats = await coordinator.get_cache_stats()
+        
+        return {
+            "message": "Multi-agent cache statistics retrieved successfully",
+            "stats": stats,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get agent cache stats: {str(e)}"
+        )
+
+@router.delete("/cache/agents/clear")
+async def clear_agent_caches(
+    agent_type: Optional[str] = None,
+    current_user = Depends(get_current_user)
+):
+    """Clear multi-agent caches (specific agent or all)"""
+    try:
+        from app.services.scoring_coordinator import coordinator
+        from app.services.agents.base_agent import AgentType
+        
+        if agent_type:
+            # Clear specific agent cache
+            try:
+                target_agent_type = AgentType(agent_type)
+                from app.services.agent_cache import agent_cache_service
+                result = await agent_cache_service.clear_agent_cache(target_agent_type)
+            except ValueError:
+                valid_types = [at.value for at in AgentType]
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid agent type '{agent_type}'. Valid types: {valid_types}"
+                )
+        else:
+            # Clear all agent caches
+            result = await coordinator.clear_all_caches()
+        
+        return {
+            "message": f"Agent caches cleared: {agent_type if agent_type else 'all'}",
+            "cleared_counts": result,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to clear agent caches: {str(e)}"
+        )
+
+@router.post("/cache/agents/warm")
+async def warm_agent_caches(
+    current_user = Depends(get_current_user)
+):
+    """Warm up all multi-agent caches with user's data"""
+    try:
+        # Get database connection
+        from app.database import get_database
+        db = get_database()
+        
+        # Get user's resumes and jobs
+        user_resumes = await db.resumes.find({"user_id": current_user["_id"]}).limit(5).to_list(5)
+        user_jobs = await db.jobs.find({"user_id": current_user["_id"]}).limit(3).to_list(3)
+        
+        if not user_resumes or not user_jobs:
+            return {
+                "message": "No resumes or jobs found for agent cache warmup",
+                "resumes_count": len(user_resumes),
+                "jobs_count": len(user_jobs),
+                "suggestion": "Upload resumes and create job descriptions first"
+            }
+        
+        # Warm agent caches using coordinator
+        from app.services.scoring_coordinator import coordinator
+        result = await coordinator.warm_caches(user_resumes, user_jobs)
+        
+        return {
+            "message": "Multi-agent caches warmed successfully",
+            "warmup_result": result,
+            "resumes_processed": len(user_resumes),
+            "jobs_processed": len(user_jobs),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Agent cache warmup failed: {str(e)}"
         )

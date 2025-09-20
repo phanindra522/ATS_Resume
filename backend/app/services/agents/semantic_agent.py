@@ -13,20 +13,20 @@ from app.routers.resumes import generate_embedding
 
 
 class SemanticSimilarityAgent(BaseAgent):
-    """Agent for semantic similarity using ChromaDB embeddings"""
+    """Agent for semantic similarity using ChromaDB embeddings with caching"""
     
-    def __init__(self, weight: float = 0.25):
-        super().__init__(AgentType.SEMANTIC_SIMILARITY, weight)
+    def __init__(self, weight: float = 0.25, use_cache: bool = True):
+        super().__init__(AgentType.SEMANTIC_SIMILARITY, weight, use_cache)
     
-    async def analyze(self, resume: Dict[str, Any], job: Dict[str, Any]) -> AgentResult:
+    async def _analyze_impl(self, resume: Dict[str, Any], job: Dict[str, Any]) -> AgentResult:
         """Analyze semantic similarity between resume and job"""
         try:
             resume_text = self._extract_text_content(resume)
             job_text = self._extract_job_content(job)
             
             # Generate embeddings
-            resume_embedding = self._generate_embedding(resume_text)
-            job_embedding = self._generate_embedding(job_text)
+            resume_embedding = await self._generate_embedding(resume_text)
+            job_embedding = await self._generate_embedding(job_text)
             
             if resume_embedding is None or job_embedding is None:
                 return self._create_result(
@@ -71,22 +71,42 @@ class SemanticSimilarityAgent(BaseAgent):
                 error=f"Error in semantic analysis: {str(e)}"
             )
     
-    def _generate_embedding(self, text: str) -> Optional[List[float]]:
-        """Generate embedding for text"""
+    async def _generate_embedding(self, text: str) -> Optional[List[float]]:
+        """Generate embedding for text with caching"""
         try:
             if not text or len(text.strip()) < 10:
                 return None
             
-            # Use the existing embedding generation function
+            # Check cache first
+            if self.use_cache and self.agent_cache:
+                cached_embedding = await self.agent_cache.get_embedding(text, self._get_embedding_model())
+                if cached_embedding is not None:
+                    return cached_embedding
+            
+            # Generate embedding using existing function
             embedding = generate_embedding(text)
             
             if embedding is not None:
-                return embedding.tolist() if hasattr(embedding, 'tolist') else list(embedding)
+                embedding_list = embedding.tolist() if hasattr(embedding, 'tolist') else list(embedding)
+                
+                # Cache the result
+                if self.use_cache and self.agent_cache:
+                    await self.agent_cache.set_embedding(text, embedding_list, self._get_embedding_model())
+                
+                return embedding_list
             
             return None
             
         except Exception as e:
             print(f"Error generating embedding: {e}")
+            return None
+
+    def _get_embedding_model(self) -> Optional[str]:
+        """Get the current embedding model for cache context"""
+        try:
+            from app.core.config import settings
+            return getattr(settings, 'LLM_EMBEDDING_MODEL', 'unknown')
+        except ImportError:
             return None
     
     def _calculate_cosine_similarity(self, embedding1: List[float], embedding2: List[float]) -> float:
@@ -196,3 +216,13 @@ class SemanticSimilarityAgent(BaseAgent):
         except Exception as e:
             print(f"Error removing resume embedding: {e}")
             return False
+
+    def _get_cache_context(self) -> Optional[str]:
+        """Get cache context for embeddings"""
+        try:
+            from app.core.config import settings
+            model = getattr(settings, 'LLM_EMBEDDING_MODEL', 'unknown')
+            dimension = getattr(settings, 'EMBEDDING_DIMENSION', 1536)
+            return f"embedding:{model}:dim{dimension}"
+        except ImportError:
+            return "embedding:unknown"

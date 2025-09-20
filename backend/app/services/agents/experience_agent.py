@@ -15,10 +15,10 @@ from app.core.config import settings
 
 
 class ExperienceRelevanceAgent(BaseAgent):
-    """Enhanced agent for experience relevance analysis with LLM capabilities"""
+    """Enhanced agent for experience relevance analysis with LLM capabilities and caching"""
     
-    def __init__(self, weight: float = 0.20):
-        super().__init__(AgentType.EXPERIENCE_RELEVANCE, weight)
+    def __init__(self, weight: float = 0.20, use_cache: bool = True):
+        super().__init__(AgentType.EXPERIENCE_RELEVANCE, weight, use_cache)
         self.llm_service = None
         self.use_llm = getattr(settings, 'USE_LLM_FOR_EXPERIENCE', True)
         self._initialize_llm_service()
@@ -46,7 +46,7 @@ class ExperienceRelevanceAgent(BaseAgent):
             print(f"❌ Failed to initialize LLM service for Experience Agent: {e}")
             self.use_llm = False
     
-    async def analyze(self, resume: Dict[str, Any], job: Dict[str, Any]) -> AgentResult:
+    async def _analyze_impl(self, resume: Dict[str, Any], job: Dict[str, Any]) -> AgentResult:
         """Analyze experience relevance between resume and job using enhanced LLM methods"""
         try:
             resume_text = self._extract_text_content(resume)

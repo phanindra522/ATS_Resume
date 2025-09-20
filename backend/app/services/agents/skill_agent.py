@@ -16,10 +16,10 @@ from app.core.config import settings
 
 
 class SkillMatchingAgent(BaseAgent):
-    """Enhanced agent for skill matching with LLM-powered normalization"""
+    """Enhanced agent for skill matching with LLM-powered normalization and caching"""
     
-    def __init__(self, weight: float = 0.25):
-        super().__init__(AgentType.SKILL_MATCHING, weight)
+    def __init__(self, weight: float = 0.25, use_cache: bool = True):
+        super().__init__(AgentType.SKILL_MATCHING, weight, use_cache)
         self.skill_taxonomy = self._load_skill_taxonomy()
         self.skill_mappings = self._build_skill_mappings()
         self.llm_service = None
@@ -74,7 +74,7 @@ class SkillMatchingAgent(BaseAgent):
                                 mappings[variation.lower()] = skill.lower()
         return mappings
     
-    async def analyze(self, resume: Dict[str, Any], job: Dict[str, Any]) -> AgentResult:
+    async def _analyze_impl(self, resume: Dict[str, Any], job: Dict[str, Any]) -> AgentResult:
         """Analyze skill alignment between resume and job using enhanced methods"""
         try:
             resume_text = self._extract_text_content(resume)
@@ -438,16 +438,38 @@ class SkillMatchingAgent(BaseAgent):
             return None
     
     async def _normalize_skills_enhanced(self, skills: List[str], context: str) -> List[str]:
-        """Normalize skills using LLM + rule-based hybrid approach"""
+        """Normalize skills using LLM + rule-based hybrid approach with caching"""
         try:
+            # Check cache first if available
+            if self.use_cache and self.agent_cache:
+                llm_model = getattr(self.llm_service, 'model_name', None) if self.llm_service else None
+                cached_normalized = await self.agent_cache.get_skill_normalization(
+                    skills, context, llm_model
+                )
+                if cached_normalized is not None:
+                    return cached_normalized
+            
             if self.use_llm and self.llm_service:
                 # Try LLM normalization first
                 llm_normalized = await self._normalize_skills_with_llm(skills, context)
                 if llm_normalized:
+                    # Cache the LLM result
+                    if self.use_cache and self.agent_cache:
+                        await self.agent_cache.set_skill_normalization(
+                            skills, context, llm_normalized, llm_model
+                        )
                     return llm_normalized
             
             # Fallback to rule-based normalization
-            return [self._normalize_skill(skill) for skill in skills]
+            rule_based = [self._normalize_skill(skill) for skill in skills]
+            
+            # Cache rule-based results too (they're deterministic)
+            if self.use_cache and self.agent_cache:
+                await self.agent_cache.set_skill_normalization(
+                    skills, context, rule_based, "rule_based"
+                )
+            
+            return rule_based
             
         except Exception as e:
             print(f"Error in enhanced skill normalization: {e}")
@@ -533,3 +555,20 @@ class SkillMatchingAgent(BaseAgent):
         except Exception as e:
             print(f"Failed to parse normalization response: {e}")
             return None
+
+    def _get_cache_context(self) -> Optional[str]:
+        """Get cache context including LLM model information"""
+        context_parts = []
+        
+        if self.use_llm and self.llm_service:
+            model_name = getattr(self.llm_service, 'model_name', 'unknown')
+            context_parts.append(f"llm:{model_name}")
+        else:
+            context_parts.append("rule_based")
+        
+        # Include skill taxonomy version if available
+        if hasattr(self, 'skill_taxonomy') and self.skill_taxonomy:
+            taxonomy_version = self.skill_taxonomy.get('version', 'v1')
+            context_parts.append(f"taxonomy:{taxonomy_version}")
+        
+        return ":".join(context_parts) if context_parts else None

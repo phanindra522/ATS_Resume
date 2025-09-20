@@ -15,10 +15,10 @@ from app.core.config import settings
 
 
 class EducationAlignmentAgent(BaseAgent):
-    """Enhanced agent for education alignment analysis with LLM capabilities"""
+    """Enhanced agent for education alignment analysis with LLM capabilities and caching"""
     
-    def __init__(self, weight: float = 0.10):
-        super().__init__(AgentType.EDUCATION_ALIGNMENT, weight)
+    def __init__(self, weight: float = 0.10, use_cache: bool = True):
+        super().__init__(AgentType.EDUCATION_ALIGNMENT, weight, use_cache)
         self.degree_levels = self._init_degree_levels()
         self.field_mappings = self._init_field_mappings()
         self.llm_service = None
@@ -96,7 +96,7 @@ class EducationAlignmentAgent(BaseAgent):
             'psychology': ['psychology', 'counseling', 'social work', 'human resources']
         }
     
-    async def analyze(self, resume: Dict[str, Any], job: Dict[str, Any]) -> AgentResult:
+    async def _analyze_impl(self, resume: Dict[str, Any], job: Dict[str, Any]) -> AgentResult:
         """Analyze education alignment between resume and job using enhanced LLM methods"""
         try:
             resume_text = self._extract_text_content(resume)

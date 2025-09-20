@@ -9,6 +9,7 @@ from app.models.resume import ResumeCreate, ResumeResponse, ResumeUpdate, Resume
 from app.database import get_database, get_chroma_collection
 from app.routers.auth import get_current_user
 from app.core.config import settings
+from app.services.advanced_cache import get_db_query_cache, get_file_processing_cache, get_embedding_cache
 import uuid
 
 router = APIRouter()
@@ -216,11 +217,24 @@ async def upload_resume(
 
 @router.get("/", response_model=List[ResumeWithUserInfo])
 async def get_resumes(current_user = Depends(get_current_user)):
-    """Get all resumes from the global pool (all recruiters can see all resumes)"""
+    """Get all resumes from the global pool (all recruiters can see all resumes) with caching"""
     try:
         db = get_database()
+        db_cache = get_db_query_cache()
         
-        # Global pool: Get all resumes from all users
+        # Try to get cached global resumes first
+        cache_key = "global_resumes_pool"
+        cached_resumes = await db_cache.cache_service.get(
+            namespace="global_data",
+            identifier=cache_key,
+            cache_version="v1"
+        )
+        
+        if cached_resumes is not None:
+            # Cache hit - return cached data
+            return [ResumeWithUserInfo(**resume) for resume in cached_resumes]
+        
+        # Cache miss - query database
         resumes_cursor = await db.resumes.find({})
         resumes = await resumes_cursor.to_list(length=1000)  # Increased limit for global pool
         
@@ -237,7 +251,18 @@ async def get_resumes(current_user = Depends(get_current_user)):
             resume_data["user_name"] = user_name
             resume_data["user_email"] = user_email
             
-            resumes_with_user_info.append(ResumeWithUserInfo(**resume_data))
+            resumes_with_user_info.append(resume_data)
+        
+        # Cache the processed results for 2 minutes (short TTL since data can change)
+        await db_cache.cache_service.set(
+            namespace="global_data",
+            identifier=cache_key,
+            value=resumes_with_user_info,
+            ttl=120,  # 2 minutes
+            cache_version="v1"
+        )
+        
+        return [ResumeWithUserInfo(**resume) for resume in resumes_with_user_info]
         
         return resumes_with_user_info
         
