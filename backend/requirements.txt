@@ -30,6 +30,10 @@ python-docx==1.2.0
 # AI/ML - OpenAI Integration
 openai==1.58.0
 
+# Multi-Agent Orchestration
+pyautogen==0.2.35
+flaml[automl]==2.3.6
+
 # Data Analysis
-numpy==2.2.0
-pandas==2.2.3
+numpy>=1.17.0,<2.0.0
+pandas==2.3.2

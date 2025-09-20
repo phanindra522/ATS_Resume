@@ -7,6 +7,7 @@ from app.database import get_database, get_chroma_collection
 from app.models.resume import ResumeWithScore
 from app.routers.auth import get_current_user
 from app.services.scoring_coordinator import coordinator
+from app.autogen_orchestrator import get_autogen_orchestrator
 import numpy as np
 from bson import ObjectId
 import re
@@ -279,4 +280,169 @@ async def get_scoring_formula():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get scoring formula: {str(e)}"
+        )
+
+@router.post(
+    "/score-autogen/{job_id}",
+    summary="Score resumes using AutoGen multi-agent orchestration",
+    description="""
+    Advanced resume scoring using AutoGen framework for collaborative agent analysis.
+    
+    **AutoGen Multi-Agent Orchestration:**
+    This endpoint uses AutoGen's conversation-based approach where AI agents collaborate:
+    
+    - **Collaborative Analysis**: Agents discuss and build upon each other's insights
+    - **Chain-of-Thought Reasoning**: Multi-step analysis with explicit reasoning
+    - **Consensus Building**: Agents work together to reach final scoring decisions  
+    - **Advanced Caching**: Results cached with 1-hour TTL for performance
+    - **Fallback Support**: Graceful degradation to direct agent analysis if needed
+    
+    **Agent Participants:**
+    - Keyword Analysis Agent
+    - Skill Matching Agent  
+    - Experience Relevance Agent
+    - Education Alignment Agent
+    - Semantic Similarity Agent
+    - Coordinator Agent (synthesis)
+    
+    **Returns:**
+    - Comprehensive multi-agent analysis
+    - Final consensus score (0-100)
+    - Individual agent contributions
+    - Chat history and reasoning process
+    """,
+    response_model=list[ResumeWithScore],
+    responses={
+        200: {"description": "Resumes scored successfully using AutoGen orchestration"},
+        404: {"description": "Job not found"},
+        500: {"description": "Internal server error during AutoGen analysis"}
+    }
+)
+async def score_resumes_with_autogen(
+    job_id: str,
+    current_user = Depends(get_current_user)
+):
+    """Score all user resumes against a job using AutoGen multi-agent orchestration."""
+    
+    try:
+        # Get database
+        db = await get_database()
+        
+        # Validate job exists and get job details
+        job = db.jobs.find_one({"_id": ObjectId(job_id)})
+        if not job:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Job not found"
+            )
+        
+        # Get job description with fallback handling
+        job_description = job.get("description", "").strip()
+        job_skills = job.get("skills", [])
+        
+        if not job_description and not job_skills:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Job has no description or skills to analyze against"
+            )
+        
+        # Use skills as fallback if no description
+        if not job_description and job_skills:
+            job_description = f"Required skills: {', '.join(job_skills)}"
+        
+        # Get user's resumes
+        resumes_cursor = db.resumes.find({"user_id": current_user["user_id"]})
+        resumes = list(resumes_cursor)
+        
+        if not resumes:
+            return []
+        
+        # Initialize AutoGen orchestrator
+        autogen_orchestrator = get_autogen_orchestrator()
+        
+        scored_resumes = []
+        
+        for resume in resumes:
+            try:
+                # Get resume content with validation
+                content = resume.get("content", "").strip()
+                
+                if not content:
+                    # Skip resumes without content but don't fail entirely
+                    print(f"⚠️  Skipping resume {resume['_id']} - no content")
+                    continue
+                
+                # Use AutoGen orchestration for scoring
+                print(f"🤖 AutoGen analyzing resume {resume['_id']}...")
+                
+                autogen_result = await autogen_orchestrator.orchestrate_analysis(
+                    resume_content=content,
+                    job_description=job_description
+                )
+                
+                if autogen_result["status"] in ["success", "success_fallback"]:
+                    result_data = autogen_result["result"]
+                    
+                    # Extract final score
+                    final_score = result_data.get("final_score", 0.0)
+                    
+                    # Create scoring result with AutoGen details
+                    scoring_result = {
+                        "_id": str(ObjectId()),
+                        "user_id": current_user["user_id"],
+                        "job_id": job_id,
+                        "resume_id": str(resume["_id"]),
+                        "overall_score": final_score,
+                        "method": "autogen_orchestration",
+                        "agent_analyses": result_data.get("agent_analyses", {}),
+                        "summary": result_data.get("summary", ""),
+                        "cached": autogen_result.get("cached", False),
+                        "fallback_used": result_data.get("fallback_used", False),
+                        "chat_history": autogen_result.get("chat_history", []),
+                        "created_at": datetime.utcnow(),
+                        "processing_time": 0  # AutoGen handles timing internally
+                    }
+                    
+                    # Save scoring result
+                    db.scoring_results.insert_one(scoring_result)
+                    
+                    # Prepare response
+                    resume_with_score = ResumeWithScore(
+                        id=str(resume["_id"]),
+                        filename=resume["filename"],
+                        content=content,
+                        uploaded_at=resume["uploaded_at"],
+                        overall_score=final_score,
+                        agent_scores=result_data.get("agent_analyses", {}),
+                        analysis_summary=result_data.get("summary", "AutoGen multi-agent analysis"),
+                        cached=autogen_result.get("cached", False),
+                        method="autogen_orchestration"
+                    )
+                    
+                    scored_resumes.append(resume_with_score)
+                    
+                    print(f"✅ AutoGen scored resume {resume['_id']}: {final_score:.1f}% (cached: {autogen_result.get('cached', False)})")
+                
+                else:
+                    # AutoGen failed, log error but continue
+                    error_msg = autogen_result.get("error", "Unknown AutoGen error")
+                    print(f"❌ AutoGen failed for resume {resume['_id']}: {error_msg}")
+                    
+            except Exception as resume_error:
+                # Log individual resume errors but continue processing
+                print(f"❌ Error processing resume {resume['_id']} with AutoGen: {resume_error}")
+                continue
+        
+        # Sort by score descending
+        scored_resumes.sort(key=lambda x: x.overall_score, reverse=True)
+        
+        return scored_resumes
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ AutoGen scoring error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"AutoGen scoring failed: {str(e)}"
         )

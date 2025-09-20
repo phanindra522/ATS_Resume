@@ -18,6 +18,32 @@ class SemanticSimilarityAgent(BaseAgent):
     def __init__(self, weight: float = 0.25, use_cache: bool = True):
         super().__init__(AgentType.SEMANTIC_SIMILARITY, weight, use_cache)
     
+    def get_meta_prompt(self):
+        """Get meta prompt for AutoGen integration"""
+        return """You are the Semantic Similarity Agent for ATS resume analysis.
+        
+        Your role:
+        - Analyze semantic similarity between resume content and job descriptions
+        - Use vector embeddings and cosine similarity for deep understanding
+        - Identify conceptual matches beyond exact keywords
+        - Consider context, synonyms, and related concepts
+        - Provide semantic similarity scores with detailed explanations
+        
+        Analysis process:
+        1. Generate vector embeddings for both resume and job description
+        2. Calculate cosine similarity between embeddings
+        3. Normalize scores to 0-100 percentage range
+        4. Provide confidence assessment based on embedding quality
+        5. Identify semantic patterns and conceptual alignment
+        
+        Output format:
+        - Semantic similarity score (0-100)
+        - Key semantic matches found
+        - Conceptual alignment areas
+        - Areas of semantic divergence
+        - Confidence level and reasoning
+        """
+    
     async def _analyze_impl(self, resume: Dict[str, Any], job: Dict[str, Any]) -> AgentResult:
         """Analyze semantic similarity between resume and job"""
         try:
