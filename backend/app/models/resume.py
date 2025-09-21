@@ -39,8 +39,15 @@ class ResumeWithScore(ResumeResponse):
     match_percentage: float
     skills_match: List[str]
     missing_skills: List[str]
+    score_breakdown: Optional[dict] = None
 
 class ResumeWithUserInfo(ResumeResponse):
     """Resume response with user information for global pool display"""
     user_name: Optional[str] = None
     user_email: Optional[str] = None
+
+class ScoringResponse(BaseModel):
+    """Response model for scoring endpoints"""
+    job: dict
+    scored_resumes: List[ResumeWithScore]
+    total_resumes: int

@@ -4,12 +4,13 @@ Resume scoring endpoints - Updated to use advanced scoring service
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.database import get_database, get_chroma_collection
-from app.models.resume import ResumeWithScore
+from app.models.resume import ResumeWithScore, ScoringResponse
 from app.routers.auth import get_current_user
 from app.services.scoring_coordinator import coordinator
 from app.autogen_orchestrator import get_autogen_orchestrator
 import numpy as np
 from bson import ObjectId
+import uuid
 import re
 from datetime import datetime
 
@@ -311,7 +312,7 @@ async def get_scoring_formula():
     - Individual agent contributions
     - Chat history and reasoning process
     """,
-    response_model=list[ResumeWithScore],
+    response_model=ScoringResponse,
     responses={
         200: {"description": "Resumes scored successfully using AutoGen orchestration"},
         404: {"description": "Job not found"},
@@ -326,10 +327,10 @@ async def score_resumes_with_autogen(
     
     try:
         # Get database
-        db = await get_database()
+        db = get_database()
         
         # Validate job exists and get job details
-        job = db.jobs.find_one({"_id": ObjectId(job_id)})
+        job = await db.jobs.find_one({"_id": job_id})
         if not job:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -351,7 +352,7 @@ async def score_resumes_with_autogen(
             job_description = f"Required skills: {', '.join(job_skills)}"
         
         # Get user's resumes
-        resumes_cursor = db.resumes.find({"user_id": current_user["user_id"]})
+        resumes_cursor = await db.resumes.find({"user_id": current_user["_id"]})
         resumes = list(resumes_cursor)
         
         if not resumes:
@@ -377,7 +378,8 @@ async def score_resumes_with_autogen(
                 
                 autogen_result = await autogen_orchestrator.orchestrate_analysis(
                     resume_content=content,
-                    job_description=job_description
+                    job_description=job_description,
+                    job_skills=job_skills
                 )
                 
                 if autogen_result["status"] in ["success", "success_fallback"]:
@@ -386,10 +388,29 @@ async def score_resumes_with_autogen(
                     # Extract final score
                     final_score = result_data.get("final_score", 0.0)
                     
+                    # Debug: Print agent scores and skills analysis
+                    print(f"🔍 DEBUG - Resume {resume['_id']} AutoGen Results:")
+                    print(f"  Final Score: {final_score}")
+                    
+                    agent_analyses = result_data.get("agent_analyses", {})
+                    for agent_name, analysis in agent_analyses.items():
+                        if isinstance(analysis, dict) and 'score' in analysis:
+                            print(f"  {agent_name}: {analysis['score']}")
+                            if agent_name == "SkillAgent" and 'analysis_data' in analysis:
+                                skills_data = analysis['analysis_data']
+                                print(f"    Matched Skills: {skills_data.get('matched_skills', [])}")
+                                print(f"    Missing Skills: {skills_data.get('missing_skills', [])}")
+                                print(f"    Resume Skills Found: {len(skills_data.get('resume_skills_normalized', []))}")
+                                print(f"    Job Skills Found: {len(skills_data.get('job_skills_normalized', []))}")
+                    
+                    print(f"  Skills Match from result: {result_data.get('skills_match', [])}")
+                    print(f"  Missing Skills from result: {result_data.get('missing_skills', [])}")
+                    print("---")
+                    
                     # Create scoring result with AutoGen details
                     scoring_result = {
-                        "_id": str(ObjectId()),
-                        "user_id": current_user["user_id"],
+                        "_id": str(uuid.uuid4()),
+                        "user_id": current_user["_id"],
                         "job_id": job_id,
                         "resume_id": str(resume["_id"]),
                         "overall_score": final_score,
@@ -404,24 +425,92 @@ async def score_resumes_with_autogen(
                     }
                     
                     # Save scoring result
-                    db.scoring_results.insert_one(scoring_result)
+                    await db.scoring_results.insert_one(scoring_result)
+                    
+                    # Parse datetime strings if needed
+                    try:
+                        created_at = resume["created_at"]
+                        if isinstance(created_at, str):
+                            try:
+                                created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                            except Exception as e1:
+                                print(f"Warning: fromisoformat failed for '{created_at}': {e1}")
+                                try:
+                                    created_at = datetime.strptime(created_at, '%Y-%m-%d %H:%M:%S.%f')
+                                except Exception as e2:
+                                    print(f"Warning: strptime failed for '{created_at}': {e2}")
+                                    created_at = datetime.utcnow()
+                        
+                        updated_at = resume.get("updated_at", resume["created_at"])
+                        if isinstance(updated_at, str):
+                            try:
+                                updated_at = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
+                            except Exception as e1:
+                                print(f"Warning: fromisoformat failed for updated_at '{updated_at}': {e1}")
+                                try:
+                                    updated_at = datetime.strptime(updated_at, '%Y-%m-%d %H:%M:%S.%f')
+                                except Exception as e2:
+                                    print(f"Warning: strptime failed for updated_at '{updated_at}': {e2}")
+                                    updated_at = created_at
+                        elif updated_at == created_at and isinstance(created_at, datetime):
+                            # If updated_at is the same string as created_at, use the parsed datetime
+                            updated_at = created_at
+                            
+                    except Exception as dt_error:
+                        print(f"Critical datetime parsing error: {dt_error}")
+                        created_at = datetime.utcnow()
+                        updated_at = created_at
+                    
+                    # Convert agent_analyses to score_breakdown format
+                    score_breakdown = {}
+                    agent_analyses = result_data.get("agent_analyses", {})
+                    
+                    agent_name_mapping = {
+                        "KeywordAgent": "keyword_match",
+                        "SkillAgent": "skills_alignment", 
+                        "ExperienceAgent": "experience_relevance",
+                        "EducationAgent": "education_alignment",
+                        "SemanticAgent": "semantic_similarity"
+                    }
+                    
+                    for agent_name, analysis in agent_analyses.items():
+                        if isinstance(analysis, dict) and 'score' in analysis:
+                            frontend_name = agent_name_mapping.get(agent_name, agent_name.lower())
+                            score_breakdown[frontend_name] = {
+                                "score": analysis.get('score', 0.0),
+                                "percentage": analysis.get('percentage', analysis.get('score', 0.0) * 100),
+                                "weight": analysis.get('weight', 0.2) * 100,  # Convert to percentage
+                                "confidence": analysis.get('confidence'),
+                                "evidence": analysis.get('evidence'),
+                                "error": analysis.get('error')
+                            }
                     
                     # Prepare response
                     resume_with_score = ResumeWithScore(
                         id=str(resume["_id"]),
+                        title=resume["title"],
+                        user_id=resume["user_id"],
                         filename=resume["filename"],
-                        content=content,
-                        uploaded_at=resume["uploaded_at"],
-                        overall_score=final_score,
-                        agent_scores=result_data.get("agent_analyses", {}),
-                        analysis_summary=result_data.get("summary", "AutoGen multi-agent analysis"),
-                        cached=autogen_result.get("cached", False),
-                        method="autogen_orchestration"
+                        file_path=resume["file_path"],
+                        file_size=resume["file_size"],
+                        text_content=resume["text_content"],
+                        file_hash=resume.get("file_hash"),
+                        text_hash=resume.get("text_hash"),
+                        skills=resume.get("skills", []),
+                        experience_years=resume.get("experience_years"),
+                        education=resume.get("education"),
+                        created_at=created_at,
+                        updated_at=updated_at,
+                        score=final_score,
+                        match_percentage=final_score * 100,
+                        skills_match=result_data.get("skills_match", []),
+                        missing_skills=result_data.get("missing_skills", []),
+                        score_breakdown=score_breakdown
                     )
                     
                     scored_resumes.append(resume_with_score)
                     
-                    print(f"✅ AutoGen scored resume {resume['_id']}: {final_score:.1f}% (cached: {autogen_result.get('cached', False)})")
+                    print(f"✅ AutoGen scored resume {resume['_id']}: {final_score * 100:.1f}% (cached: {autogen_result.get('cached', False)})")
                 
                 else:
                     # AutoGen failed, log error but continue
@@ -434,9 +523,13 @@ async def score_resumes_with_autogen(
                 continue
         
         # Sort by score descending
-        scored_resumes.sort(key=lambda x: x.overall_score, reverse=True)
+        scored_resumes.sort(key=lambda x: x.score, reverse=True)
         
-        return scored_resumes
+        return {
+            "job": job,
+            "scored_resumes": scored_resumes,
+            "total_resumes": len(scored_resumes)
+        }
         
     except HTTPException:
         raise

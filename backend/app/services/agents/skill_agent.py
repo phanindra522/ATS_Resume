@@ -41,12 +41,12 @@ class SkillMatchingAgent(BaseAgent):
         try:
             if self.use_llm and settings.is_llm_configured():
                 self.llm_service = LLMServiceFactory.get_default_service()
-                print(f"✅ LLM service initialized for Skill Matching Agent: {settings.LLM_PROVIDER}")
+                print(f"LLM service initialized for Skill Matching Agent: {settings.LLM_PROVIDER}")
             else:
-                print(f"⚠️ LLM service not available for Skill Matching Agent. Using rule-based approach.")
+                print(f"WARNING: LLM service not available for Skill Matching Agent. Using rule-based approach.")
                 self.use_llm = False
         except Exception as e:
-            print(f"❌ Failed to initialize LLM service for Skill Matching Agent: {e}")
+            print(f"ERROR: Failed to initialize LLM service for Skill Matching Agent: {e}")
             self.use_llm = False
     
     def _load_skill_taxonomy(self) -> Dict:
@@ -230,8 +230,8 @@ class SkillMatchingAgent(BaseAgent):
         # Define technical skills that should be more strictly validated
         technical_skills = {
             'javascript', 'typescript', 'python', 'java', 'react', 'angular', 'vue', 
-            'nodejs', 'express', 'django', 'flask', 'spring', 'mysql', 'postgresql', 
-            'mongodb', 'redis', 'aws', 'azure', 'gcp', 'docker', 'kubernetes', 
+            'nodejs', 'express', 'django', 'flask', 'fastapi', 'spring', 'mysql', 'postgresql', 
+            'mongodb', 'redis', 'sql', 'aws', 'azure', 'gcp', 'docker', 'kubernetes', 
             'git', 'jenkins', 'terraform', 'ansible', 'agile', 'scrum', 'devops', 
             'rest', 'graphql', 'microservices', 'tdd', 'bdd', 'ci/cd', 'cicd'
         }
@@ -266,7 +266,13 @@ class SkillMatchingAgent(BaseAgent):
             r'(?:developed|built|created|implemented|programmed|coded)\s+(?:using\s+)?' + re.escape(skill) + r'\b',
             r'(?:worked\s+with|used|utilized|leveraged)\s+' + re.escape(skill) + r'\b',
             r'(?:programming\s+languages?|frameworks?|technologies?|tools?)[:\s]*[^.\n]*' + re.escape(skill) + r'\b',
-            r'(?:technical\s+)?skills?[:\s]*[^.\n]*' + re.escape(skill) + r'\b'
+            r'(?:technical\s+)?skills?[:\s]*[^.\n]*' + re.escape(skill) + r'\b',
+            r'experience\s+in\s+[^.\n]*' + re.escape(skill) + r'\b',
+            r'years?\s+(?:of\s+)?experience\s+(?:in\s+|with\s+)[^.\n]*' + re.escape(skill) + r'\b',
+            # Add pattern for "Python developer", "JavaScript engineer", etc.
+            re.escape(skill) + r'\s+(?:developer|engineer|programmer|specialist|expert)\b',
+            # Add pattern for comma-separated lists like "Django, FastAPI, React"
+            r'\b' + re.escape(skill) + r'(?:\s*,|\s+and\s+|\s*$)'
         ]
         
         for pattern in strong_positive_contexts:

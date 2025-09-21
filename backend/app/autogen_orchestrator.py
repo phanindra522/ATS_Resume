@@ -10,7 +10,7 @@ This script provides:
 """
 
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import autogen
 from autogen import AssistantAgent, UserProxyAgent, GroupChat, GroupChatManager
 
@@ -110,7 +110,7 @@ class AutoGenOrchestrator:
             code_execution_config=False
         )
     
-    async def orchestrate_analysis(self, resume_content: str, job_description: str) -> Dict[str, Any]:
+    async def orchestrate_analysis(self, resume_content: str, job_description: str, job_skills: List[str] = None) -> Dict[str, Any]:
         """
         Orchestrate multi-agent analysis using AutoGen with caching integration.
         
@@ -122,104 +122,11 @@ class AutoGenOrchestrator:
             Comprehensive analysis result with agent insights and final score
         """
         
-        try:
-            # Simple cache check using content hash
-            cache_key = f"autogen_{abs(hash(resume_content + job_description))}"
-            
-            # Try to get from simple cache first
-            try:
-                cached_result = await self.cache_service.cache_service.get(
-                    namespace="autogen_results",
-                    identifier=cache_key,
-                    cache_version="v1"
-                )
-                
-                if cached_result:
-                    return {
-                        "status": "success",
-                        "cached": True,
-                        "result": cached_result,
-                        "timestamp": cached_result.get("timestamp")
-                    }
-            except Exception:
-                # Cache miss or error - continue with analysis
-                pass
-            
-            # Create analysis prompt
-            analysis_prompt = f"""
-            Please analyze this resume against the job description using multi-agent coordination:
-
-            **Job Description:**
-            {job_description}
-
-            **Resume Content:**
-            {resume_content}
-
-            Each agent should provide:
-            1. Detailed analysis in your specialty area
-            2. Numerical score (0-100) with justification
-            3. Key strengths and gaps identified
-            4. Specific recommendations for improvement
-
-            Final coordinator should synthesize all agent feedback into overall score and summary.
-            """
-            
-            # Setup group chat with all agents
-            agents_list = [
-                self.user_proxy,
-                self.keyword_agent,
-                self.skill_agent, 
-                self.experience_agent,
-                self.education_agent,
-                self.semantic_agent,
-                self.coordinator_agent
-            ]
-            
-            group_chat = GroupChat(
-                agents=agents_list,
-                messages=[],
-                max_round=10,
-                speaker_selection_method="round_robin"
-            )
-            
-            manager = GroupChatManager(
-                groupchat=group_chat,
-                llm_config={"config_list": self.config_list}
-            )
-            
-            # Execute orchestration
-            chat_result = self.user_proxy.initiate_chat(
-                manager,
-                message=analysis_prompt
-            )
-            
-            # Parse results from chat history
-            analysis_result = self._parse_chat_results(chat_result)
-            
-            # Cache the result
-            try:
-                await self.cache_service.cache_service.set(
-                    namespace="autogen_results",
-                    identifier=cache_key,
-                    data=analysis_result,
-                    ttl_seconds=3600,  # 1 hour cache
-                    cache_version="v1"
-                )
-            except Exception:
-                # Cache storage failed but continue
-                pass
-            
-            return {
-                "status": "success", 
-                "cached": False,
-                "result": analysis_result,
-                "chat_history": chat_result.chat_history if hasattr(chat_result, 'chat_history') else []
-            }
-            
-        except Exception as e:
-            # Fallback to direct agent analysis
-            print(f"AutoGen orchestration failed: {e}")
-            return await self._fallback_analysis(resume_content, job_description)
+        print("🤖 AutoGen orchestrate_analysis called - using simplified fallback for now")
+        
+        # For now, skip the complex AutoGen conversation and go directly to fallback
+        # This avoids the coroutine issues while we debug
+        return await self._fallback_analysis(resume_content, job_description, job_skills)
     
     def _parse_chat_results(self, chat_result) -> Dict[str, Any]:
         """Parse AutoGen chat results into structured analysis."""
@@ -295,42 +202,70 @@ class AutoGenOrchestrator:
         
         return " | ".join(summary_parts)
     
-    async def _fallback_analysis(self, resume_content: str, job_description: str) -> Dict[str, Any]:
+    async def _fallback_analysis(self, resume_content: str, job_description: str, job_skills: List[str] = None) -> Dict[str, Any]:
         """Fallback to direct agent analysis if AutoGen fails."""
         
         try:
-            # Use existing agents directly
-            keyword_result = await self.keyword_agent_obj.analyze(resume_content, job_description)
-            skill_result = await self.skill_agent_obj.analyze(resume_content, job_description)
-            experience_result = await self.experience_agent_obj.analyze(resume_content, job_description)
-            education_result = await self.education_agent_obj.analyze(resume_content, job_description)
-            semantic_result = await self.semantic_agent_obj.analyze(resume_content, job_description)
+            print("🔄 Starting fallback analysis...")
             
-            # Calculate average score
+            # Create proper dictionary structures for agents
+            resume_dict = {"text_content": resume_content}
+            job_dict = {"description": job_description, "skills": job_skills or []}
+            
+            print("📊 Calling keyword agent...")
+            keyword_result = await self.keyword_agent_obj.analyze(resume_dict, job_dict)
+            print(f"✅ Keyword result type: {type(keyword_result)}")
+            
+            print("🔧 Calling skill agent...")
+            skill_result = await self.skill_agent_obj.analyze(resume_dict, job_dict)
+            print(f"✅ Skill result type: {type(skill_result)}")
+            
+            print("💼 Calling experience agent...")
+            experience_result = await self.experience_agent_obj.analyze(resume_dict, job_dict)
+            print(f"✅ Experience result type: {type(experience_result)}")
+            
+            print("🎓 Calling education agent...")
+            education_result = await self.education_agent_obj.analyze(resume_dict, job_dict)
+            print(f"✅ Education result type: {type(education_result)}")
+            
+            print("🔍 Calling semantic agent...")
+            semantic_result = await self.semantic_agent_obj.analyze(resume_dict, job_dict)
+            print(f"✅ Semantic result type: {type(semantic_result)}")
+            
+            # Calculate average score from AgentResult objects
             scores = [
-                keyword_result.get("score", 0),
-                skill_result.get("score", 0),
-                experience_result.get("score", 0),
-                education_result.get("score", 0),
-                semantic_result.get("score", 0)
+                keyword_result.score if keyword_result else 0,
+                skill_result.score if skill_result else 0,
+                experience_result.score if experience_result else 0,
+                education_result.score if education_result else 0,
+                semantic_result.score if semantic_result else 0
             ]
             
             avg_score = sum(scores) / len(scores) if scores else 0
+            
+            # Extract skills match data from skill agent
+            skills_match = []
+            missing_skills = []
+            if skill_result and hasattr(skill_result, 'evidence') and skill_result.evidence:
+                skills_match = skill_result.evidence.get('matched_skills', [])
+                missing_skills = skill_result.evidence.get('missing_skills', [])
             
             return {
                 "status": "success_fallback",
                 "cached": False,
                 "result": {
                     "agent_analyses": {
-                        "KeywordAgent": keyword_result,
-                        "SkillAgent": skill_result,
-                        "ExperienceAgent": experience_result,
-                        "EducationAgent": education_result,
-                        "SemanticAgent": semantic_result
+                        "KeywordAgent": keyword_result.__dict__ if keyword_result else {},
+                        "SkillAgent": skill_result.__dict__ if skill_result else {},
+                        "ExperienceAgent": experience_result.__dict__ if experience_result else {},
+                        "EducationAgent": education_result.__dict__ if education_result else {},
+                        "SemanticAgent": semantic_result.__dict__ if semantic_result else {}
                     },
                     "final_score": round(avg_score, 2),
                     "summary": "Direct agent analysis (AutoGen fallback)",
-                    "fallback_used": True
+                    "fallback_used": True,
+                    "skills_match": skills_match,
+                    "missing_skills": missing_skills
                 }
             }
             

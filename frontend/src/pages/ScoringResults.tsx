@@ -13,7 +13,8 @@ import {
   DollarSign,
   Users,
   Target,
-  Trash2
+  Trash2,
+  BarChart3
 } from 'lucide-react'
 import { api } from '../lib/api'
 import toast from 'react-hot-toast'
@@ -68,20 +69,33 @@ interface ScoringResult {
 const ScoringResults = () => {
   const { jobId } = useParams<{ jobId: string }>()
   const [scoringResult, setScoringResult] = useState<ScoringResult | null>(null)
+  const [availableJobs, setAvailableJobs] = useState<Job[]>([])
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedResume, setSelectedResume] = useState<ScoredResume | null>(null)
   const [deletingResume, setDeletingResume] = useState<string | null>(null)
   const [isScoring, setIsScoring] = useState(false) // Prevent duplicate calls
+  const [loadingJobs, setLoadingJobs] = useState(false)
 
   useEffect(() => {
     let isMounted = true
     
     const loadData = async () => {
+      console.log('🚀 ScoringResults component loading data...')
+      console.log('🔗 jobId from URL:', jobId)
+      console.log('🔑 Auth token:', localStorage.getItem('token') ? 'Present' : 'Missing')
+      
+      // First load available jobs
+      await fetchAvailableJobs()
+      
       if (jobId) {
+        console.log('📊 Loading results for specific job:', jobId)
+        setSelectedJobId(jobId)
         await fetchScoringResults(jobId)
       } else {
-        // If no jobId provided, try to get the first available job
-        await fetchFirstJobAndScore()
+        console.log('📝 No specific jobId, showing job selection interface')
+        // No jobId provided, show job selection interface
+        setLoading(false)
       }
     }
     
@@ -94,15 +108,64 @@ const ScoringResults = () => {
     }
   }, [jobId])
 
+  const fetchAvailableJobs = async () => {
+    try {
+      setLoadingJobs(true)
+      console.log('🔍 Fetching available jobs...')
+      
+      const token = localStorage.getItem('token')
+      console.log('🔑 Auth token present:', !!token)
+      
+      if (!token) {
+        console.error('❌ No authentication token found - user needs to login')
+        setAvailableJobs([])
+        setLoadingJobs(false)
+        return []
+      }
+      
+      const response = await api.get('/jobs/')
+      
+      console.log('✅ Jobs API response status:', response.status)
+      console.log('� Jobs data:', response.data)
+      console.log('📊 Number of jobs:', response.data?.length || 0)
+      
+      if (response.data && Array.isArray(response.data)) {
+        console.log('✅ Setting', response.data.length, 'available jobs')
+        setAvailableJobs(response.data)
+        return response.data
+      } else {
+        console.error('❌ Unexpected response format:', response.data)
+        setAvailableJobs([])
+        return []
+      }
+    } catch (error: any) {
+      console.error('❌ Error fetching jobs:', error)
+      
+      // Check if it's an authentication error
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        console.error('🚫 Authentication error - redirecting to login')
+        localStorage.removeItem('token')
+        // You might want to redirect to login here
+        toast.error('Please login to access scoring results')
+      } else {
+        console.error('💥 Network or server error:', error.response?.data?.detail || error.message)
+        toast.error('Failed to fetch jobs: ' + (error.response?.data?.detail || error.message))
+      }
+      
+      setAvailableJobs([])
+      return []
+    } finally {
+      setLoadingJobs(false)
+    }
+  }
+
   const fetchFirstJobAndScore = async () => {
     try {
       setLoading(true)
-      // Get all jobs and use the first one
-      const response = await api.get('/jobs')
-      const jobs = response.data
       
-      if (jobs && jobs.length > 0) {
-        const firstJob = jobs[0]
+      if (availableJobs && availableJobs.length > 0) {
+        const firstJob = availableJobs[0]
+        setSelectedJobId(firstJob._id)
         await fetchScoringResults(firstJob._id)
       } else {
         toast.error('No jobs found. Please create a job description first.')
@@ -112,6 +175,15 @@ const ScoringResults = () => {
       toast.error('Failed to fetch jobs: ' + (error.response?.data?.detail || error.message))
       setLoading(false)
     }
+  }
+
+  const handleJobSelection = async (jobId: string) => {
+    if (jobId === selectedJobId) return // Already selected
+    
+    setSelectedJobId(jobId)
+    setScoringResult(null)
+    setSelectedResume(null)
+    await fetchScoringResults(jobId)
   }
 
   const fetchScoringResults = async (id: string) => {
@@ -128,6 +200,28 @@ const ScoringResults = () => {
       setScoringResult(response.data)
     } catch (error: any) {
       toast.error(error.response?.data?.detail || 'Failed to fetch scoring results')
+    } finally {
+      setLoading(false)
+      setIsScoring(false)
+    }
+  }
+
+  const fetchAutoGenScoringResults = async (id: string) => {
+    // Prevent duplicate calls
+    if (isScoring) {
+      console.log('AutoGen scoring already in progress, skipping duplicate call')
+      return
+    }
+    
+    try {
+      setIsScoring(true)
+      setLoading(true)
+      toast.loading('Running AutoGen multi-agent analysis...', { duration: 2000 })
+      const response = await api.post(`/scoring/score-autogen/${id}`)
+      setScoringResult(response.data)
+      toast.success('AutoGen analysis completed!')
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to run AutoGen scoring')
     } finally {
       setLoading(false)
       setIsScoring(false)
@@ -187,12 +281,279 @@ const ScoringResults = () => {
     )
   }
 
+  // Check if user is not authenticated
+  const token = localStorage.getItem('token')
+  if (!token && !loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-text-primary mb-4">Authentication Required</h2>
+          <p className="text-text-secondary mb-6">Please login to access scoring results</p>
+          <div className="space-x-4">
+            <Link to="/login" className="btn-primary">
+              Login
+            </Link>
+            <Link to="/" className="btn-secondary">
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!scoringResult && !selectedJobId && availableJobs.length === 0 && !loading && !loadingJobs) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-text-primary mb-4">No jobs found</h2>
+          <p className="text-text-secondary mb-6">Please create a job description first to run scoring analysis</p>
+          <div className="space-x-4">
+            <Link to="/job-description" className="btn-primary">
+              Create Job Description
+            </Link>
+            <Link to="/dashboard" className="btn-secondary">
+              Back to Dashboard
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!scoringResult && selectedJobId) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-4xl font-bold text-text-primary mb-2">
+                  Scoring Results
+                </h1>
+                <p className="text-xl text-text-secondary">
+                  Select a job and run analysis to see results
+                </p>
+              </div>
+              <Link to="/dashboard" className="btn-secondary">
+                Back to Dashboard
+              </Link>
+            </div>
+
+            {/* Job Selection */}
+            <div className="card p-6 mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-text-primary mb-2">
+                    Select Job to Analyze
+                  </h3>
+                  <p className="text-text-secondary text-sm">
+                    Choose a job description to run scoring analysis against your resumes
+                  </p>
+                </div>
+                <div className="flex items-center space-x-4">
+                  {/* Job Selector Dropdown */}
+                  <div className="min-w-64">
+                    <select
+                      value={selectedJobId || ''}
+                      onChange={(e) => handleJobSelection(e.target.value)}
+                      disabled={loadingJobs || isScoring}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-text-primary disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    >
+                      <option value="" disabled>
+                        {loadingJobs ? 'Loading jobs...' : 'Select a job'}
+                      </option>
+                      {availableJobs.map((job) => (
+                        <option key={job._id} value={job._id}>
+                          {job.title} - {job.company}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* AutoGen Scoring Option */}
+                  {selectedJobId && (
+                    <button
+                      onClick={() => fetchAutoGenScoringResults(selectedJobId)}
+                      disabled={isScoring}
+                      className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Target size={16} />
+                      <span>
+                        {isScoring ? 'Analyzing...' : 'AutoGen Score'}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Job Count Info */}
+              {availableJobs.length > 0 && (
+                <div className="mt-4 flex items-center space-x-4 text-sm text-text-secondary">
+                  <div className="flex items-center space-x-1">
+                    <Briefcase size={16} />
+                    <span>{availableJobs.length} jobs available</span>
+                  </div>
+                  {selectedJobId && (
+                    <div className="flex items-center space-x-1">
+                      <CheckCircle size={16} className="text-success-500" />
+                      <span>Job selected - click "AutoGen Score" to analyze</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Instructions */}
+            <div className="card p-6">
+              <div className="text-center py-12">
+                <Target size={48} className="mx-auto mb-4 text-text-secondary" />
+                <h3 className="text-xl font-semibold text-text-primary mb-2">
+                  Ready to Analyze Resumes
+                </h3>
+                <p className="text-text-secondary mb-4">
+                  {selectedJobId 
+                    ? 'Click "AutoGen Score" to run advanced multi-agent analysis on your resumes'
+                    : 'Select a job from the dropdown above to get started'
+                  }
+                </p>
+                <div className="flex justify-center space-x-4">
+                  {selectedJobId ? (
+                    <>
+                      <button
+                        onClick={() => fetchScoringResults(selectedJobId)}
+                        disabled={isScoring}
+                        className="btn-secondary flex items-center space-x-2 disabled:opacity-50"
+                      >
+                        <BarChart3 size={16} />
+                        <span>{isScoring ? 'Analyzing...' : 'Standard Score'}</span>
+                      </button>
+                      <button
+                        onClick={() => fetchAutoGenScoringResults(selectedJobId)}
+                        disabled={isScoring}
+                        className="btn-primary flex items-center space-x-2 disabled:opacity-50"
+                      >
+                        <Target size={16} />
+                        <span>{isScoring ? 'Analyzing...' : 'AutoGen Score'}</span>
+                      </button>
+                    </>
+                  ) : (
+                    <Link to="/job-description" className="btn-primary">
+                      Create New Job
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show job selection interface when jobs are available but no scoring results yet
+  if (!scoringResult && !selectedJobId && availableJobs.length > 0 && !loading && !loadingJobs) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-4xl font-bold text-text-primary mb-2">
+                  Scoring Results
+                </h1>
+                <p className="text-xl text-text-secondary">
+                  Select a job and run analysis to see results
+                </p>
+              </div>
+            </div>
+
+            {/* Job Selection */}
+            <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+              <div className="max-w-md">
+                <label className="block text-lg font-semibold text-text-primary mb-4">
+                  Select Job Position
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedJobId || ''}
+                    onChange={(e) => {
+                      const jobId = e.target.value
+                      setSelectedJobId(jobId)
+                    }}
+                    className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
+                    disabled={loadingJobs}
+                  >
+                    <option value="">
+                      {loadingJobs ? 'Loading jobs...' : 'Select a job'}
+                    </option>
+                    {availableJobs.map((job) => (
+                      <option key={job._id} value={job._id}>
+                        {job.title} - {job.company}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {availableJobs.length > 0 && (
+                <div className="mt-8 p-6 bg-blue-50 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0">
+                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">i</span>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                        How it works
+                      </h3>
+                      <p className="text-blue-800 leading-relaxed">
+                        {selectedJobId
+                          ? 'Analysis will run automatically once you select a job position above'
+                          : 'Select a job from the dropdown above to get started'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {availableJobs.length > 0 ? (
+                <>
+                  <div className="mt-8 flex space-x-4">
+                    <button
+                      onClick={() => selectedJobId && fetchAutoGenScoringResults(selectedJobId)}
+                      disabled={!selectedJobId || isScoring}
+                      className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                    >
+                      {isScoring && (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      )}
+                      <span>{isScoring ? 'Analyzing...' : 'AutoGen Score'}</span>
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <Link to="/job-description" className="btn-primary">
+                  Create New Job
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Safety check - if we somehow get here without scoring results, handle gracefully
   if (!scoringResult) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-text-primary mb-4">No scoring results found</h2>
-          <p className="text-text-secondary mb-6">Please run a scoring analysis first</p>
+          <p className="text-text-secondary mb-6">Please select a job and run analysis</p>
           <Link to="/dashboard" className="btn-primary">
             Back to Dashboard
           </Link>
@@ -201,6 +562,7 @@ const ScoringResults = () => {
     )
   }
 
+  // At this point we know scoringResult is not null
   const { job, scored_resumes, total_resumes } = scoringResult
 
   return (
@@ -225,6 +587,70 @@ const ScoringResults = () => {
             <Link to="/dashboard" className="btn-secondary">
               Back to Dashboard
             </Link>
+          </div>
+
+          {/* Job Selection */}
+          <div className="card p-6 mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-text-primary mb-2">
+                  Select Job to Analyze
+                </h3>
+                <p className="text-text-secondary text-sm">
+                  Choose a job description to run scoring analysis against your resumes
+                </p>
+              </div>
+              <div className="flex items-center space-x-4">
+                {/* Job Selector Dropdown */}
+                <div className="min-w-64">
+                  <select
+                    value={selectedJobId || ''}
+                    onChange={(e) => handleJobSelection(e.target.value)}
+                    disabled={loadingJobs || isScoring}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-text-primary disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  >
+                    <option value="" disabled>
+                      {loadingJobs ? 'Loading jobs...' : 'Select a job'}
+                    </option>
+                    {availableJobs.map((job) => (
+                      <option key={job._id} value={job._id}>
+                        {job.title} - {job.company}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* AutoGen Scoring Option */}
+                {selectedJobId && (
+                  <button
+                    onClick={() => fetchAutoGenScoringResults(selectedJobId)}
+                    disabled={isScoring}
+                    className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Target size={16} />
+                    <span>
+                      {isScoring ? 'Analyzing...' : 'AutoGen Score'}
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Job Count Info */}
+            {availableJobs.length > 0 && (
+              <div className="mt-4 flex items-center space-x-4 text-sm text-text-secondary">
+                <div className="flex items-center space-x-1">
+                  <Briefcase size={16} />
+                  <span>{availableJobs.length} jobs available</span>
+                </div>
+                {selectedJobId && (
+                  <div className="flex items-center space-x-1">
+                    <CheckCircle size={16} className="text-success-500" />
+                    <span>Job selected for analysis</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Job Summary */}

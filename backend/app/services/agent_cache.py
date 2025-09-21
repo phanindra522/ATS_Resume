@@ -36,7 +36,7 @@ class AgentCacheService:
         memory_cache = MemoryCache(max_size=2000, ttl=7200)  # Larger cache, longer TTL
         self.cache_service = CacheService(primary_backend=memory_cache)
         
-        print("✅ Agent caching initialized with memory backend")
+        print("Agent caching initialized with memory backend")
         
         # Agent-specific TTL configurations (in seconds)
         self.agent_ttls = {

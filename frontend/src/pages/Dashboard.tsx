@@ -49,7 +49,7 @@ const Dashboard = () => {
     try {
       const [resumesRes, jobsRes] = await Promise.all([
         api.get('/resumes'),
-        api.get('/jobs')
+        api.get('/jobs/')
       ])
       setResumes(resumesRes.data)
       setJobs(jobsRes.data)
